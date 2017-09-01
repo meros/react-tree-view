@@ -5,6 +5,7 @@
 .Node__titlerow {
   display: flex;
   align-items: center;
+  min-height: 30px;
 }
 
 .Node__title {
@@ -18,15 +19,26 @@
   outline-width: 0;
 }
 
-
-.Node__expandicon {
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  border-radius: 10px;
-  background-color: #888;
-  text-align: center;
+.Node__expandsign {
+  font-size: 16pt;
+  min-width: 15px;
+  color: gray;
 }
+
+.Node__titledot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 5px;
+  text-align: center;
+  background-color: gray;
+  margin-right: 10px;
+}
+
+.Node__titledot--focus {
+  background-color: black;
+}
+
 
 .Node__childcontainer {
   padding-left: 30px;

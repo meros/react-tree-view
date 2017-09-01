@@ -73,6 +73,18 @@ class App extends Component {
       this.setState({ viewModel });
     },
 
+    collapse: (id) => {
+      let {viewModel} = this.state;
+      viewModel.expanded.delete(id);
+      this.setState({ viewModel });
+    },
+
+    expand: (id) => {
+      let {viewModel} = this.state;
+      viewModel.expanded.add(id);    
+      this.setState({ viewModel });
+    },
+
     blur: () => {
       let {viewModel} = this.state;
       viewModel.focus.id = undefined;

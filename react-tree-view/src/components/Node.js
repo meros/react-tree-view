@@ -66,11 +66,12 @@ class Node extends Component {
     return (
       <div className="Node">
         <div className="Node__titlerow">
-          <div className={cx("Node__expandicon", {expanded: expanded})} onClick={() => controller.toggleExpand(model.id)}>
+          <div className={cx("Node__expandsign")}>
           {
             model.children.length>0?expanded?"-":"+":""
           }
           </div>
+          <div className={cx("Node__titledot", {"Node__titledot--focus": titleSelected})} onClick={() => controller.toggleExpand(model.id)} />
           <div
             ref={(el) => this.titleInput = el}
             className={cx("Node__title", {"Node__title--focus": titleSelected})}
@@ -79,13 +80,21 @@ class Node extends Component {
             onKeyDown={(e) => {
               // Arrow up
               if (e.keyCode == 38) {
-                controller.prevFocus();
+                if (e.metaKey) {
+                  controller.collapse(model.id);
+                } else {
+                  controller.prevFocus();
+                }
                 e.preventDefault();
               }
 
               // Arrow down
               if (e.keyCode == 40) {
-                controller.nextFocus();
+                if (e.metaKey) {
+                  controller.expand(model.id);
+                } else {
+                  controller.nextFocus();
+                }
                 e.preventDefault();
               }
 
