@@ -1,0 +1,33 @@
+.Node {
+  text-align: left;
+}
+
+.Node__titlerow {
+  display: flex;
+  align-items: center;
+}
+
+.Node__title {
+  font-size: 19pt;
+  display: inline-block;
+  color: gray;
+}
+
+.Node__title--focus {
+  color: black;
+  outline-width: 0;
+}
+
+
+.Node__expandicon {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  background-color: #888;
+  text-align: center;
+}
+
+.Node__childcontainer {
+  padding-left: 30px;
+}
