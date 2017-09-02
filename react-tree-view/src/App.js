@@ -7,6 +7,10 @@ import Node from './components/Node.js';
 import logo from './logo.svg';
 import uuid from 'uuid/v4';
 
+class Controller {
+
+}
+
 class App extends Component {
   state = {
     model: {
@@ -46,6 +50,17 @@ class App extends Component {
   }
 
   controller = {
+    helpers: {
+      findParentTo: (model, id) => {
+        // If id is a direct child of mine, return me!
+        if (model.children.find((child) => child.id === id) !== undefined) {
+          return model;
+        }
+
+        // Search among children
+        return model.children.find((child) => this.controller.helpers.findParentTo(child, id) !== undefined);
+      },
+    },
     changeTitle: (id, newTitle) => {
       let {model} = this.state;
 
@@ -81,7 +96,7 @@ class App extends Component {
 
     expand: (id) => {
       let {viewModel} = this.state;
-      viewModel.expanded.add(id);    
+      viewModel.expanded.add(id);
       this.setState({ viewModel });
     },
 
@@ -144,7 +159,25 @@ class App extends Component {
       this.setState({ viewModel });
     },
     createSiblingTo: (id) => {
-      alert('creating sibling to ' + id);
+      let {model, viewModel} = this.state;
+      let parentToId = this.controller.helpers.findParentTo(model, id) || model;
+
+      let index = parentToId.children.findIndex((child) => child.id === id) +  1;
+      let newChild = {
+        id: uuid(),
+        title: "",
+        children: [],
+      };
+
+      parentToId.children.splice(
+        index,
+        0,
+        newChild);
+
+      viewModel.focus.id = newChild.id;
+      viewModel.focus.type = 'title';
+
+      this.setState({model, viewModel});
     },
   }
 

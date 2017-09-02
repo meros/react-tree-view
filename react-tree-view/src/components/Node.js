@@ -4,43 +4,17 @@ import React, { Component } from 'react';
 
 import cx from 'classnames/bind';
 
-class AutoFocusInput extends Component {
-  componentDidMount() {
-    let {controller} = this.props;
-    let {input} = this.refs;
-
-    input.focus();
-    input.addEventListener('keydown', function(e) {
-      // Arrow Down
-      if (e.keyCode === 40) {
-        controller.nextFocus();
-        e.preventDefault();
-      }
-
-      // Arrow Up
-      if (e.keyCode === 38) {
-        controller.prevFocus();
-        e.preventDefault();
-      }
-    });
-  }
-
-  render() {
-    let {value} = this.props;
-
-    return (
-      <div
-        className="Node__title--focus"
-        contentEditable
-        ref="input">
-        {value}
-      </div>
-    );
-  }
-}
-
 class Node extends Component {
+
   componentWillUpdate() {
+    this.focusIfNeeded();
+  }
+
+  componentDidMount() {
+    this.focusIfNeeded();
+  }
+
+  focusIfNeeded() {
     let titleSelected = this.getTitleSelected(this.props.model, this.props.viewModel);
 
     if (titleSelected) {
@@ -54,7 +28,6 @@ class Node extends Component {
     return model.id === viewModel.focus.id &&
       viewModel.focus.type === 'title';
   }
-
 
   render() {
     let {model, viewModel, controller} = this.props;
