@@ -30,7 +30,7 @@ class App extends Component {
     let root = fire.database().ref('root');
     let that = this;
 
-    root.on('value', (snapshot) => {
+    root.once('value', (snapshot) => {
       let value = snapshot.val();
 
       let recurseFixNode = (node) => {
