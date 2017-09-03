@@ -4,6 +4,8 @@ import React, { Component } from 'react';
 
 import KeyHandler from 'react-key-handler';
 import Node from './components/Node.js';
+import equal from 'deep-equal';
+import fire from './fire';
 import logo from './logo.svg';
 import uuid from 'uuid/v4';
 
@@ -13,33 +15,7 @@ class Controller {
 
 class App extends Component {
   state = {
-    model: {
-      id: uuid(),
-      title: '1',
-      children: [
-        {
-          id: uuid(),
-          title: '2',
-          children: [
-            {
-              id: uuid(),
-              title: '3',
-              children: [],
-            },
-            {
-              id: uuid(),
-              title: '4',
-              children: [],
-            }
-          ],
-        },
-        {
-          id: uuid(),
-          title: '5',
-          children: [],
-        }
-      ],
-    },
+    model: undefined,
     viewModel: {
       focus: {
         id: undefined,
@@ -47,6 +23,46 @@ class App extends Component {
       },
       expanded: new Set([]),
     }
+  }
+
+  componentDidMount() {
+    /* Create reference to messages in Firebase Database */
+    let root = fire.database().ref('root');
+    let that = this;
+
+    root.on('value', (snapshot) => {
+      let value = snapshot.val();
+
+      let recurseFixNode = (node) => {
+        if (node.children instanceof Array) {
+          node.children.forEach((child) => {
+            recurseFixNode(child);
+          });
+        } else {
+          node.children = [];
+        }
+      }
+
+      recurseFixNode(value);
+
+      console.log(value, that.state.model);
+
+      if (equal(value, that.state.model)) {
+        return;
+      }
+
+      that.setState({model: value});
+    });
+  }
+
+  componentWillUpdate(nextProps, nextState) {
+    let {model} = this.state;
+
+    if (model === undefined) {
+      return;
+    }
+
+    fire.database().ref('root').set(model);
   }
 
   controller = {
@@ -271,9 +287,9 @@ class App extends Component {
         <div className='App-header'>
           <h2>Welcome to Tree View</h2>
         </div>
-        <Node model={model} viewModel={viewModel} controller={this.controller}/>
         {
-          JSON.stringify(this.state)
+          model !== undefined &&
+          <Node model={model} viewModel={viewModel} controller={this.controller}/>
         }
       </div>
     );
