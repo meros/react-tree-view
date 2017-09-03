@@ -27,10 +27,11 @@ class App extends Component {
 
   componentDidMount() {
     /* Create reference to messages in Firebase Database */
-    let root = fire.database().ref('root');
+    let root = fire.database().ref('nodes');
     let that = this;
 
     root.once('value', (snapshot) => {
+      // TODO: cannot store in DB like this! Need to flatten it!
       let value = snapshot.val();
 
       let recurseFixNode = (node) => {
