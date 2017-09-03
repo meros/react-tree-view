@@ -12,24 +12,26 @@
   font-size: 19pt;
   display: inline-block;
   color: gray;
+  outline-width: 0;
+  border: 0px;
 }
 
 .Node__title--focus {
   color: black;
-  outline-width: 0;
 }
 
 .Node__expandsign {
   font-size: 16pt;
   min-width: 15px;
   color: gray;
+  margin-bottom: 2px;
 }
 
 .Node__titledot {
   display: inline-block;
-  width: 10px;
-  height: 10px;
-  border-radius: 5px;
+  width: 16px;
+  height: 16px;
+  border-radius: 8px;
   text-align: center;
   background-color: gray;
   margin-right: 10px;
@@ -42,4 +44,5 @@
 
 .Node__childcontainer {
   padding-left: 30px;
+  padding-bottom: 10px;
 }

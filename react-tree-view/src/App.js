@@ -15,27 +15,27 @@ class App extends Component {
   state = {
     model: {
       id: uuid(),
-      title: "Hejsan",
+      title: '1',
       children: [
         {
           id: uuid(),
-          title: "Hejsan",
+          title: '2',
           children: [
             {
               id: uuid(),
-              title: "Hejsan",
+              title: '3',
               children: [],
             },
             {
               id: uuid(),
-              title: "Hejsan",
+              title: '4',
               children: [],
             }
           ],
         },
         {
           id: uuid(),
-          title: "Hejsan",
+          title: '5',
           children: [],
         }
       ],
@@ -53,26 +53,46 @@ class App extends Component {
     helpers: {
       findParentTo: (model, id) => {
         // If id is a direct child of mine, return me!
-        if (model.children.find((child) => child.id === id) !== undefined) {
+        if (model.children.find((child) => (child.id === id)) !== undefined) {
           return model;
         }
 
-        // Search among children
-        return model.children.find((child) => this.controller.helpers.findParentTo(child, id) !== undefined);
+        for (var i in model.children) {
+          let child = model.children[i];
+          let result = this.controller.helpers.findParentTo(child, id);
+          if (result !== undefined) {
+            return result;
+          }
+        }
+
+        return undefined;
       },
+      find: (model, id) => {
+
+        if (model.id === id) {
+          return model;
+        }
+
+        for (var i in model.children) {
+          let child = model.children[i];
+          let result = this.controller.helpers.find(child, id);
+          if (result !== undefined) {
+            return result;
+          }
+        }
+
+        return undefined;
+      }
     },
     changeTitle: (id, newTitle) => {
       let {model} = this.state;
 
-      let recursiveChangeTitle = (model) => {
-        if (model.id === id) {
-          model.title = newTitle;
-        }
-
-        model.children.forEach(recursiveChangeTitle);
+      let modelUnderAction = this.controller.helpers.find(model, id);
+      if (modelUnderAction === undefined) {
+        return;
       }
 
-      recursiveChangeTitle(model);
+      modelUnderAction.title = newTitle;
       this.setState({ model });
     },
 
@@ -99,13 +119,23 @@ class App extends Component {
       viewModel.expanded.add(id);
       this.setState({ viewModel });
     },
-
-    blur: () => {
+    blur: (id) => {
       let {viewModel} = this.state;
+
+      if (viewModel.focus.id !== id) {
+        return;
+      }
+
       viewModel.focus.id = undefined;
       this.setState({ viewModel });
     },
+    focus: (id, type) => {
+      let {viewModel} = this.state;
 
+      viewModel.focus.id = id;
+      viewModel.focus.type = type;
+      this.setState({ viewModel });
+    },
     nextFocus: () => {
       let {model, viewModel} = this.state;
 
@@ -131,7 +161,6 @@ class App extends Component {
       recursiveNextFocus(model);
       this.setState({ viewModel });
     },
-
     prevFocus: () => {
       let {model, viewModel} = this.state;
 
@@ -165,7 +194,7 @@ class App extends Component {
       let index = parentToId.children.findIndex((child) => child.id === id) +  1;
       let newChild = {
         id: uuid(),
-        title: "",
+        title: '',
         children: [],
       };
 
@@ -179,18 +208,73 @@ class App extends Component {
 
       this.setState({model, viewModel});
     },
+    indent: (id) => {
+      let {model} = this.state;
+
+      let parent = this.controller.helpers.findParentTo(model, id);
+      if (parent === undefined) {
+        return;
+      }
+
+      let index = parent.children.findIndex((child) => (child.id === id));
+      if (index <= 0) {
+        return;
+      }
+
+      let modelUnderAction = parent.children[index];
+
+
+      parent.children.splice(index, 1);
+
+      parent.children[index-1].children.push(modelUnderAction);
+      this.controller.expand(parent.children[index-1].id);
+      this.setState({model});
+    },
+    outdent: (id) => {
+      let {model} = this.state;
+
+      let parent = this.controller.helpers.findParentTo(model, id);
+      if (parent === undefined) {
+        return;
+      }
+
+      let grandParent = this.controller.helpers.findParentTo(model, parent.id);
+      if (grandParent === undefined) {
+        return;
+      }
+
+      let index = parent.children.findIndex((child) => (child.id === id));
+      if (index < 0) {
+        return;
+      }
+
+      let parentIndex = grandParent.children.findIndex((child) => (child.id === parent.id));
+      if (parentIndex < 0) {
+        return;
+      }
+
+      let modelUnderAction = parent.children[index];
+
+      parent.children.splice(index, 1);
+
+      grandParent.children.splice(parentIndex+1, 0, modelUnderAction);
+      this.setState({model});
+    }
   }
 
   render() {
     const {model, viewModel} = this.state;
     return (
-      <div className="App">
-        <KeyHandler keyEventName={'keydown'} keyValue="ArrowDown" onKeyHandle={() => this.controller.nextFocus()} />
-        <KeyHandler keyEventName={'keydown'} keyValue="ArrowUp" onKeyHandle={() => this.controller.prevFocus()} />
-        <div className="App-header">
+      <div className='App'>
+        <KeyHandler keyEventName={'keydown'} keyValue='ArrowDown' onKeyHandle={() => this.controller.nextFocus()} />
+        <KeyHandler keyEventName={'keydown'} keyValue='ArrowUp' onKeyHandle={() => this.controller.prevFocus()} />
+        <div className='App-header'>
           <h2>Welcome to Tree View</h2>
         </div>
         <Node model={model} viewModel={viewModel} controller={this.controller}/>
+        {
+          JSON.stringify(this.state)
+        }
       </div>
     );
   }
