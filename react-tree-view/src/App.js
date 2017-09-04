@@ -269,18 +269,12 @@ class App extends Component {
       <div className='App'>
         <KeyHandler keyEventName={'keydown'} keyValue='ArrowDown' onKeyHandle={() => this.controller.nextFocus()} />
         <KeyHandler keyEventName={'keydown'} keyValue='ArrowUp' onKeyHandle={() => this.controller.prevFocus()} />
-        <div className='App-header'>
-          <h2>Welcome to Tree View</h2>
+        <div className='App__nodescontainer'>
+          {
+            model !== undefined &&
+            <Node model={model} viewModel={viewModel} controller={this.controller}/>
+          }
         </div>
-        {
-          model !== undefined &&
-          <Node model={model} viewModel={viewModel} controller={this.controller}/>
-        }
-        <p>
-        {
-          JSON.stringify(this.state.firemodel)
-        }
-        </p>
       </div>
     );
   }
