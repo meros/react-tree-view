@@ -212,8 +212,12 @@ class App extends Component {
 
       parentRef.once('value', (snapshot) => {
         let childrenIds = snapshot.val().children || [];
-        // TODO: wrong place!
-        childrenIds.push(newNodeId);
+
+        let index = childrenIds.indexOf(id) + 1;
+        childrenIds.splice(
+          index,
+          0,
+          newNodeId);
         parentRef.update({children: childrenIds});
       })
 
@@ -223,7 +227,36 @@ class App extends Component {
       this.setState({viewModel});
     },
     indent: (id) => {
-      alert('Not implemented');
+      let {model, viewModel} = this.state;
+      let controller = this.controller;
+
+      let parentModel = this.controller.helpers.findParentTo(model, id);
+      let parentId = parentModel.id;
+      let parentRef = fire.database().ref('nodes').child(parentId);
+
+      parentRef.once('value')
+        .then((snapshot) => {
+          let childrenIds = snapshot.val().children || [];
+          let idx = childrenIds.indexOf(id);
+          if (idx <= 0) {
+            return;
+          }
+
+          childrenIds.splice(idx, 1);
+          parentRef.update({children: childrenIds});
+
+          let newParentId = childrenIds[idx-1];
+          let newParentRef = fire.database().ref('nodes').child(newParentId);
+
+          newParentRef.once('value')
+            .then((snapshot) => {
+              let newChildrenIds = snapshot.val().children || [];
+              newChildrenIds.push(id);
+              newParentRef.update({children: newChildrenIds});
+
+              controller.expand(newParentId);
+            });
+        });
     },
     outdent: (id) => {
       alert('Not implemented');
