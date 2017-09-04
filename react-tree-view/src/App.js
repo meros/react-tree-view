@@ -15,6 +15,7 @@ class Controller {
 
 class App extends Component {
   state = {
+    firemodel: undefined,
     model: undefined,
     viewModel: {
       focus: {
@@ -27,43 +28,40 @@ class App extends Component {
 
   componentDidMount() {
     /* Create reference to messages in Firebase Database */
-    let root = fire.database().ref('nodes');
+    let nodes = fire.database().ref('nodes');
     let that = this;
 
-    root.once('value', (snapshot) => {
-      // TODO: cannot store in DB like this! Need to flatten it!
-      let value = snapshot.val();
+    nodes.on('value', (snapshot) => {
+      let nodes = snapshot.val();
 
-      let recurseFixNode = (node) => {
-        if (node.children instanceof Array) {
-          node.children.forEach((child) => {
-            recurseFixNode(child);
-          });
-        } else {
-          node.children = [];
+      let model = (nodes && nodes['root']) || {
+         title: ''
+       };
+
+      let recurse = (id, model) => {
+        model.id = id;
+
+        if (model.children === undefined) {
+          model.children = [];
         }
+
+        model.children = model.children.filter(
+          (childId) => {
+            return nodes[childId] !== undefined
+          })
+          .map((childId) => {
+            let childNode = nodes[childId];
+            recurse(childId, childNode);
+            return childNode;
+          });
       }
 
-      recurseFixNode(value);
+      recurse('root', model);
 
-      console.log(value, that.state.model);
+      let firemodel = snapshot.val();
 
-      if (equal(value, that.state.model)) {
-        return;
-      }
-
-      that.setState({model: value});
+      that.setState({model, firemodel});
     });
-  }
-
-  componentWillUpdate(nextProps, nextState) {
-    let {model} = this.state;
-
-    if (model === undefined) {
-      return;
-    }
-
-    fire.database().ref('root').set(model);
   }
 
   controller = {
@@ -101,16 +99,9 @@ class App extends Component {
         return undefined;
       }
     },
+
     changeTitle: (id, newTitle) => {
-      let {model} = this.state;
-
-      let modelUnderAction = this.controller.helpers.find(model, id);
-      if (modelUnderAction === undefined) {
-        return;
-      }
-
-      modelUnderAction.title = newTitle;
-      this.setState({ model });
+      fire.database().ref('nodes').child(id).update({title: newTitle});
     },
 
     toggleExpand: (id) => {
@@ -136,6 +127,7 @@ class App extends Component {
       viewModel.expanded.add(id);
       this.setState({ viewModel });
     },
+
     blur: (id) => {
       let {viewModel} = this.state;
 
@@ -146,6 +138,7 @@ class App extends Component {
       viewModel.focus.id = undefined;
       this.setState({ viewModel });
     },
+
     focus: (id, type) => {
       let {viewModel} = this.state;
 
@@ -153,6 +146,7 @@ class App extends Component {
       viewModel.focus.type = type;
       this.setState({ viewModel });
     },
+
     nextFocus: () => {
       let {model, viewModel} = this.state;
 
@@ -178,6 +172,7 @@ class App extends Component {
       recursiveNextFocus(model);
       this.setState({ viewModel });
     },
+
     prevFocus: () => {
       let {model, viewModel} = this.state;
 
@@ -204,78 +199,34 @@ class App extends Component {
 
       this.setState({ viewModel });
     },
+
     createSiblingTo: (id) => {
       let {model, viewModel} = this.state;
-      let parentToId = this.controller.helpers.findParentTo(model, id) || model;
 
-      let index = parentToId.children.findIndex((child) => child.id === id) +  1;
-      let newChild = {
-        id: uuid(),
-        title: '',
-        children: [],
-      };
+      let newNodeRef = fire.database().ref('nodes').push({ 'title': '' });
+      let newNodeId = newNodeRef.key;
 
-      parentToId.children.splice(
-        index,
-        0,
-        newChild);
+      let parentModel = this.controller.helpers.findParentTo(model, id) || model;
+      let parentId = parentModel.id;
+      let parentRef = fire.database().ref('nodes').child(parentId);
 
-      viewModel.focus.id = newChild.id;
+      parentRef.once('value', (snapshot) => {
+        let childrenIds = snapshot.val().children || [];
+        // TODO: wrong place!
+        childrenIds.push(newNodeId);
+        parentRef.update({children: childrenIds});
+      })
+
+      viewModel.focus.id = newNodeId;
       viewModel.focus.type = 'title';
 
-      this.setState({model, viewModel});
+      this.setState({viewModel});
     },
     indent: (id) => {
-      let {model} = this.state;
-
-      let parent = this.controller.helpers.findParentTo(model, id);
-      if (parent === undefined) {
-        return;
-      }
-
-      let index = parent.children.findIndex((child) => (child.id === id));
-      if (index <= 0) {
-        return;
-      }
-
-      let modelUnderAction = parent.children[index];
-
-
-      parent.children.splice(index, 1);
-
-      parent.children[index-1].children.push(modelUnderAction);
-      this.controller.expand(parent.children[index-1].id);
-      this.setState({model});
+      alert('Not implemented');
     },
     outdent: (id) => {
-      let {model} = this.state;
-
-      let parent = this.controller.helpers.findParentTo(model, id);
-      if (parent === undefined) {
-        return;
-      }
-
-      let grandParent = this.controller.helpers.findParentTo(model, parent.id);
-      if (grandParent === undefined) {
-        return;
-      }
-
-      let index = parent.children.findIndex((child) => (child.id === id));
-      if (index < 0) {
-        return;
-      }
-
-      let parentIndex = grandParent.children.findIndex((child) => (child.id === parent.id));
-      if (parentIndex < 0) {
-        return;
-      }
-
-      let modelUnderAction = parent.children[index];
-
-      parent.children.splice(index, 1);
-
-      grandParent.children.splice(parentIndex+1, 0, modelUnderAction);
-      this.setState({model});
+      alert('Not implemented');
     }
   }
 
@@ -292,6 +243,11 @@ class App extends Component {
           model !== undefined &&
           <Node model={model} viewModel={viewModel} controller={this.controller}/>
         }
+        <p>
+        {
+          JSON.stringify(this.state.firemodel)
+        }
+        </p>
       </div>
     );
   }
