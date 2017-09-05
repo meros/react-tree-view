@@ -75,7 +75,11 @@ class Node extends Component {
 
               // Enter
               if (e.keyCode === 13) {
-                controller.createSiblingTo(model.id);
+                if (e.metaKey) {
+                  controller.complete(model.id);
+                } else {
+                  controller.createSiblingTo(model.id);
+                }
                 e.preventDefault();
               }
 

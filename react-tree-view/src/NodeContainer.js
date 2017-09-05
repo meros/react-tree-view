@@ -193,73 +193,124 @@ export default class NodeContainer extends Component {
       this.setState({ viewModel });
     },
 
-    createSiblingTo: (id) => {
-      let {model, viewModel} = this.state;
-      let nodesRef = this.getNodesRef();
+    complete: (id) => {
+      if (id === root) {
+        return;
+      }
 
-      let newNodeRef = nodesRef.push({ 'title': '' });
-      let newNodeId = newNodeRef.key;
+      const {firemodel} = this.state;
+      this.getNodesRef().child(id).update({complete: !firemodel[id].complete});
+    },
 
-      let parentModel = this.controller.helpers.findParentTo(model, id) || model;
-      let parentId = parentModel.id;
-      let parentRef = nodesRef.child(parentId);
+    createSiblingTo: (siblingId) => {
+      const {model, viewModel, firemodel} = this.state;
+      const controller = this.controller;
 
-      parentRef.once('value', (snapshot) => {
-        let childrenIds = snapshot.val().children || [];
+      const nodesRef = this.getNodesRef();
 
-        let index = childrenIds.indexOf(id) + 1;
-        childrenIds.splice(
-          index,
-          0,
-          newNodeId);
-        parentRef.update({children: childrenIds});
-      })
+      // Create a new node
+      const newNodeId = nodesRef.push({ 'title': '' }).key;
 
+      // Insert node into correct parent
+      const parentId = (this.controller.helpers.findParentTo(model, siblingId) || model).id;
 
-      viewModel.focus.id = newNodeId;
-      viewModel.focus.type = 'title';
+      // At correct place among children
+      let childrenIds = firemodel[parentId].children || [];
+      const insertPointIndex = childrenIds.indexOf(siblingId) + 1;
+      childrenIds.splice(
+        insertPointIndex,
+        0,
+        newNodeId);
 
-      this.controller.expand(parentId);
-      this.setState({viewModel});
+      nodesRef.child(parentId).update({children: childrenIds});
+
+      // Update focus
+      controller.expand(parentId);
+      controller.focus(newNodeId, 'title');
     },
     indent: (id) => {
-      let {model, viewModel} = this.state;
-      let controller = this.controller;
-      let nodesRef = this.getNodesRef();
+      const {firemodel, model, viewModel} = this.state;
+      const controller = this.controller;
 
-      let parentModel = this.controller.helpers.findParentTo(model, id);
-      let parentId = parentModel.id;
-      let parentRef = nodesRef.child(parentId);
+      const nodesRef = this.getNodesRef();
 
-      parentRef.once('value')
-        .then((snapshot) => {
-          let childrenIds = snapshot.val().children || [];
-          let idx = childrenIds.indexOf(id);
-          if (idx <= 0) {
-            return;
-          }
+      const parentModel = this.controller.helpers.findParentTo(model, id);
 
-          childrenIds.splice(idx, 1);
-          parentRef.update({children: childrenIds});
+      // Cannot indent without parent
+      if (!parentModel) {
+        return;
+      }
 
-          let newParentId = childrenIds[idx-1];
-          let newParentRef = nodesRef.child(newParentId);
+      const parentId = parentModel.id;
 
-          newParentRef.once('value')
-            .then((snapshot) => {
-              let newChildrenIds = snapshot.val().children || [];
-              newChildrenIds.push(id);
-              newParentRef.update({children: newChildrenIds});
+      // Find id in parent
+      let childrenIds = firemodel[parentId].children || [];
+      const idIndex = childrenIds.indexOf(id);
 
-              controller.expand(newParentId);
-            });
-        });
+      // Cannot indent without sibling to become new parent above
+      if (idIndex <= 0) {
+        return;
+      }
+
+      // Remove id from old parent
+      childrenIds.splice(idIndex, 1);
+      nodesRef.child(parentId).update({children: childrenIds});
+
+      // Add to new parent (sibling to id)
+      const newParentId = childrenIds[idIndex-1];
+      let newChildrenIds = firemodel[newParentId].children || [];
+      newChildrenIds.push(id);
+      nodesRef.child(newParentId).update({children: newChildrenIds});
+
+      // Expand new parent
+      controller.expand(newParentId);
     },
     outdent: (id) => {
-      alert('Not implemented');
+      const {firemodel, model, viewModel} = this.state;
+      const controller = this.controller;
+
+      const nodesRef = this.getNodesRef();
+
+      const parentModel = this.controller.helpers.findParentTo(model, id);
+
+      // Cannot outdent without parent
+      if (!parentModel) {
+        return;
+      }
+
+      const parentId = parentModel.id;
+
+      const grandParentModel = this.controller.helpers.findParentTo(model, parentId);
+
+      // Cannot outdent without grandparent
+      if (!grandParentModel) {
+        return;
+      }
+
+      const grandParentId = grandParentModel.id;
+
+      // Find id in parent
+      let childrenIds = firemodel[parentId].children || [];
+      const idIndex = childrenIds.indexOf(id);
+
+      // Remove id from old parent
+      childrenIds.splice(idIndex, 1);
+      nodesRef.child(parentId).update({children: childrenIds});
+
+      // Find parent id in grandparent
+      let parentChildrenIds = firemodel[grandParentId].children || [];
+      const parentIdIndex = parentChildrenIds.indexOf(parentId) + 1;
+      parentChildrenIds.splice(
+        parentIdIndex,
+        0,
+        id);
+
+      nodesRef.child(grandParentId).update({children: parentChildrenIds});
+
+      // Expand new parent
+      controller.expand(grandParentId);
     }
   };
-
 
   render() {
     let {model, viewModel} = this.state;
