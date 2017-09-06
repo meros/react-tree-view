@@ -19,59 +19,54 @@ class Node extends Component {
   }
 
   focusIfNeeded() {
-    let titleSelected = this.getTitleSelected(this.props.model, this.props.viewModel);
+    let {viewModel} = this.props;
 
-    if (titleSelected) {
+    if (this.getTitleSelected(viewModel)) {
       setTimeout(() => {
         this.titleInput.focus();
       }, 0);
     }
   }
 
-  getTitleSelected(model, viewModel) {
-    return model.id === viewModel.focus.id &&
-      viewModel.focus.type === 'title';
+  getTitleSelected(viewModel) {
+    return viewModel.titleSelected;
   }
 
   render() {
-    const {model, viewModel, controller} = this.props;
+    const {viewModel, controller} = this.props;
 
-    const titleSelected = this.getTitleSelected(model, viewModel);
-
-    const visibleChildren = model.children.filter(child => !child.complete);
-    const hasChildren = visibleChildren.length > 0;
-    const expanded = viewModel.expanded.has(model.id);
-    const showChildren = expanded && hasChildren;
-    const isComplete = model.complete;
+    const titleSelected = false;
 
     return (
       <div className='Node'>
         <div className='Node__titlerow'>
-          <div className={cx("Node__doticon", {"Node__doticon--focus": titleSelected})} onClick={() => controller.toggleExpand(model.id)}>
+          <div
+            className={cx("Node__doticon", {"Node__doticon--focus": titleSelected})}
+            onClick={() => controller.toggleExpand(viewModel.id)}>
             {
-              hasChildren && !expanded &&
+              viewModel.expandCapability === 'expand' &&
               <ArrowRight size={20} />
             }
             {
-              hasChildren && expanded &&
+              viewModel.expandCapability === 'collapse' &&
               <ArrowDown size={20} />
             }
             {
-              !hasChildren &&
+              viewModel.expandCapability === 'none' &&
               <Dot size={20} />
             }
           </div>
           <input
             ref={(el) => this.titleInput = el}
             className={cx('Node__title', {'Node__title--focus': titleSelected})}
-            onBlur={() => controller.blur(model.id)}
-            onFocus={() => controller.focus(model.id, 'title')}
-            onChange={(event) => controller.changeTitle(model.id, event.target.value)}
+            onBlur={() => controller.blur(viewModel.id)}
+            onFocus={() => controller.focus(viewModel.id, 'title')}
+            onChange={(event) => controller.changeTitle(viewModel.id, event.target.value)}
             onKeyDown={(e) => {
               // Arrow up
               if (e.keyCode === 38) {
                 if (e.metaKey) {
-                  controller.collapse(model.id);
+                  controller.collapse(viewModel.id);
                 } else {
                   controller.prevFocus();
                 }
@@ -81,7 +76,7 @@ class Node extends Component {
               // Arrow down
               if (e.keyCode === 40) {
                 if (e.metaKey) {
-                  controller.expand(model.id);
+                  controller.expand(viewModel.id);
                 } else {
                   controller.nextFocus();
                 }
@@ -91,9 +86,9 @@ class Node extends Component {
               // Enter
               if (e.keyCode === 13) {
                 if (e.metaKey) {
-                  controller.complete(model.id);
+                  controller.complete(viewModel.id);
                 } else {
-                  controller.createSiblingTo(model.id);
+                  controller.createSiblingTo(viewModel.id);
                 }
                 e.preventDefault();
               }
@@ -101,22 +96,26 @@ class Node extends Component {
               // Tab
               if (e.keyCode === 9) {
                 if (e.shiftKey) {
-                  controller.outdent(model.id);
+                  controller.outdent(viewModel.id);
                   e.preventDefault();
                 } else {
-                  controller.indent(model.id);
+                  controller.indent(viewModel.id);
                   e.preventDefault();
                 }
               }
             }}
-            value={model.title} />
+            value={viewModel.title} />
         </div>
         {
-          showChildren &&
+          viewModel.children.length > 0 &&
           <div className='Node__childcontainer'>
             {
-              visibleChildren
-                .map((child) => <Node model={child} viewModel={viewModel} key={child.id} controller={controller}/>)
+              viewModel.children
+                .map(childViewModel =>
+                  <Node
+                    viewModel={childViewModel}
+                    controller={controller}
+                    key={childViewModel.id} />)
             }
           </div>
         }
