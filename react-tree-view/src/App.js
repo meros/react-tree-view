@@ -3,6 +3,7 @@ import './App.css';
 import React, { Component } from 'react';
 
 import NodeContainer from './NodeContainer';
+import Spinner from 'react-spinkit';
 import equal from 'deep-equal';
 import firebase from 'firebase'
 import logo from './logo.svg';
@@ -39,6 +40,12 @@ class App extends Component {
           {
             user !== undefined &&
             <NodeContainer user={user} controller={this.controller}/>
+          }
+          {
+            user === undefined &&            
+            <div className='App_authenticatingcontainer'>
+              <Spinner name="folding-cube" />
+            </div>
           }
         </div>
       </div>

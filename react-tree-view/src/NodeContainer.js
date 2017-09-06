@@ -1,6 +1,9 @@
+import './NodesContainer.css'
+
 import React, { Component } from 'react';
 
 import KeyHandler from 'react-key-handler';
+import LoadingNode from './components/LoadingNode.js';
 import Node from './components/Node.js';
 import fire from './fire';
 
@@ -314,13 +317,16 @@ export default class NodeContainer extends Component {
 
     return (
 
-      <div>
+      <div className='NodesContainer'>
         <KeyHandler keyEventName={'keydown'} keyValue='ArrowDown' onKeyHandle={() => this.controller.nextFocus()} />
         <KeyHandler keyEventName={'keydown'} keyValue='ArrowUp' onKeyHandle={() => this.controller.prevFocus()} />
-
         {
           model &&
           <Node model={model} viewModel={viewModel} controller={controller}/>
+        }
+        {
+          !model &&
+          <LoadingNode />
         }
       </div>
     );

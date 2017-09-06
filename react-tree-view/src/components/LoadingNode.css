@@ -1,0 +1,22 @@
+.LoadingNode {
+  text-align: left;
+}
+
+.LoadingNode__titlerow {
+  display: flex;
+  align-items: center;
+  min-height: 30px;
+}
+
+.LoadingNode__doticon {
+  color: gray;
+  margin-right: 5px;
+}
+
+.LoadingNode__title {
+  font-size: 19pt;
+  display: inline-block;
+  color: gray;
+  outline-width: 0;
+  border: 0px;
+}
