@@ -20,22 +20,15 @@
   color: black;
 }
 
-.Node__expandsign {
-  font-size: 16pt;
-  min-width: 15px;
+.Node__doticon {
   color: gray;
-  margin-bottom: 2px;
+  margin-right: 5px;
 }
 
-.Node__titledot {
-  display: inline-block;
-  width: 16px;
-  height: 16px;
-  border-radius: 8px;
-  text-align: center;
-  background-color: gray;
-  margin-right: 10px;
+.Node__doticon--focus {
+  color: black;
 }
+
 
 .Node__titledot--focus {
   background-color: black;

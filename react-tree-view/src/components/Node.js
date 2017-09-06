@@ -4,6 +4,10 @@ import React, { Component } from 'react';
 
 import cx from 'classnames/bind';
 
+const ArrowRight = require('react-icons/lib/io/arrow-right-b');
+const ArrowDown = require('react-icons/lib/io/arrow-down-b');
+const Dot = require('react-icons/lib/io/minus-round');
+
 class Node extends Component {
 
   componentWillUpdate() {
@@ -34,18 +38,27 @@ class Node extends Component {
 
     let titleSelected = this.getTitleSelected(model, viewModel);
 
+    let hasChildren = model.children.length > 0;
     let expanded = viewModel.expanded.has(model.id);
     let showChildren = expanded && model.children.length > 0;
 
     return (
       <div className='Node'>
         <div className='Node__titlerow'>
-          <div className={cx('Node__expandsign')}>
-          {
-            model.children.length>0?expanded?'-':'+':''
-          }
+          <div className={cx("Node__doticon", {"Node__doticon--focus": titleSelected})} onClick={() => controller.toggleExpand(model.id)}>
+            {
+              hasChildren && !expanded &&
+              <ArrowRight size={20} />
+            }
+            {
+              hasChildren && expanded &&
+              <ArrowDown size={20} />
+            }
+            {
+              !hasChildren &&
+              <Dot size={20} />
+            }
           </div>
-          <div className={cx('Node__titledot', {'Node__titledot--focus': titleSelected})} onClick={() => controller.toggleExpand(model.id)} />
           <input
             ref={(el) => this.titleInput = el}
             className={cx('Node__title', {'Node__title--focus': titleSelected})}

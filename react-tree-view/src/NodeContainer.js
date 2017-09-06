@@ -59,21 +59,23 @@ export default class NodeContainer extends Component {
 
   controller = {
     helpers: {
-      findParentTo: (model, id) => {
-        // If id is a direct child of mine, return me!
-        if (model.children.find((child) => (child.id === id)) !== undefined) {
-          return model;
+      findParentIdTo: (id) => {
+        let firemodel = this.state.firemodel || {};
+
+        return Object.keys(firemodel).find((potentialParentId) => {
+          const children = firemodel[potentialParentId].children || [];
+          return children.indexOf(id) != -1;
+        });
+      },
+      findSiblingIdsTo: (id) => {
+        let firemodel = this.state.firemodel || {};
+
+        let parentId = this.controller.helpers.findParentIdTo(id);
+        if (!parentId) {
+          return undefined;
         }
 
-        for (var i in model.children) {
-          let child = model.children[i];
-          let result = this.controller.helpers.findParentTo(child, id);
-          if (result !== undefined) {
-            return result;
-          }
-        }
-
-        return undefined;
+        return firemodel[parentId].children || [];
       },
       find: (model, id) => {
 
@@ -212,7 +214,7 @@ export default class NodeContainer extends Component {
       const newNodeId = nodesRef.push({ 'title': '' }).key;
 
       // Insert node into correct parent
-      const parentId = (this.controller.helpers.findParentTo(model, siblingId) || model).id;
+      const parentId = this.controller.helpers.findParentIdTo(siblingId) || 'root';
 
       // At correct place among children
       let childrenIds = firemodel[parentId].children || [];
@@ -234,14 +236,12 @@ export default class NodeContainer extends Component {
 
       const nodesRef = this.getNodesRef();
 
-      const parentModel = this.controller.helpers.findParentTo(model, id);
+      const parentId = this.controller.helpers.findParentIdTo(id);
 
       // Cannot indent without parent
-      if (!parentModel) {
+      if (!parentId) {
         return;
       }
-
-      const parentId = parentModel.id;
 
       // Find id in parent
       let childrenIds = firemodel[parentId].children || [];
@@ -271,23 +271,19 @@ export default class NodeContainer extends Component {
 
       const nodesRef = this.getNodesRef();
 
-      const parentModel = this.controller.helpers.findParentTo(model, id);
+      const parentId = this.controller.helpers.findParentIdTo(id);
 
       // Cannot outdent without parent
-      if (!parentModel) {
+      if (!parentId) {
         return;
       }
 
-      const parentId = parentModel.id;
-
-      const grandParentModel = this.controller.helpers.findParentTo(model, parentId);
+      const grandParentId = this.controller.helpers.findParentIdTo(parentId);
 
       // Cannot outdent without grandparent
-      if (!grandParentModel) {
+      if (!grandParentId) {
         return;
       }
-
-      const grandParentId = grandParentModel.id;
 
       // Find id in parent
       let childrenIds = firemodel[parentId].children || [];
