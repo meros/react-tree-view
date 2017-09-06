@@ -14,9 +14,6 @@ export default class NodeContainer extends Component {
     // Original data from firebase
     firemodel: undefined,
 
-    // Model of what is currently being shown
-    viewModel: undefined,
-
     // Options governing the translation between firemodel -> viewModel
     viewOptions: {
       focus: {
@@ -39,41 +36,8 @@ export default class NodeContainer extends Component {
 
     /* Create reference to messages in Firebase Database */
     this.getNodesRef().on('value', (snapshot) => {
-      const nodes = snapshot.val();
       const firemodel = snapshot.val();
-
-      let recursiveFireModelToViewModel = (id, viewModel) => {
-        viewModel.id = id;
-
-        // Make sure children only include visible children, but is always an array
-        const childrenIds =
-          (viewModel.children || [])
-            .filter(childId => nodes[childId])
-            .filter(childId => !(nodes[childId].complete && viewOptions.hideCompleted));
-
-        viewModel.expandCapability = 'none';
-        if (childrenIds.length > 0) {
-          viewModel.expandCapability = 'expand';
-        }
-
-        // If node is not expanded, hide children
-        const expandedChildren = childrenIds;//viewOptions.expanded.has(id)?childrenIds:[];
-        if (expandedChildren.length > 0) {
-          viewModel.expandCapability = 'collapse';
-        }
-
-        viewModel.children = expandedChildren
-          .map(childId => recursiveFireModelToViewModel(childId, nodes[childId]));
-
-        return viewModel;
-      }
-
-      // Kickstart the recursive translation
-      const viewModel = recursiveFireModelToViewModel(
-        'root',
-        nodes['root'] || { title: 'Welcome to Tree View!' });
-
-      this.setState({viewModel, firemodel});
+      this.setState({firemodel});
     });
   }
 
@@ -154,9 +118,44 @@ export default class NodeContainer extends Component {
     }
   };
 
+  recursiveFireModelToViewModel(id, node) {
+    let {firemodel, viewOptions} = this.state;
+
+    // Create viewModel
+    let viewModel = node;
+    viewModel.id = id;
+
+    // Make sure children only include visible children, but is always an array
+    const childrenIds =
+      (viewModel.children || [])
+        .filter(childId => firemodel[childId])
+        .filter(childId => !(firemodel[childId].complete && viewOptions.hideCompleted));
+
+    viewModel.expandCapability = 'none';
+    if (childrenIds.length > 0) {
+      viewModel.expandCapability = 'expand';
+    }
+
+    // If node is not expanded, hide children
+    const expandedChildren = childrenIds;//viewOptions.expanded.has(id)?childrenIds:[];
+    if (expandedChildren.length > 0) {
+      viewModel.expandCapability = 'collapse';
+    }
+
+    viewModel.children = expandedChildren
+      .map(childId => this.recursiveFireModelToViewModel(childId, firemodel[childId]));
+
+    return viewModel;
+  }
+
   render() {
-    let {viewModel, viewOptions} = this.state;
-    let controller = this.controller;
+    const {firemodel, viewOptions} = this.state;
+    const controller = this.controller;
+
+    let viewModel = undefined;
+    if (firemodel) {
+      viewModel = this.recursiveFireModelToViewModel('root', firemodel['root']) || {title: 'Welcome to TreeViewer!'};
+    }
 
     return (
 
