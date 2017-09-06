@@ -10,17 +10,15 @@ const Dot = require('react-icons/lib/io/minus-round');
 
 class Node extends Component {
 
-  componentWillUpdate() {
-    this.focusIfNeeded();
+  componentWillUpdate(nextProps) {
+    this.focusIfNeeded(nextProps.viewModel);
   }
 
   componentDidMount() {
-    this.focusIfNeeded();
+    this.focusIfNeeded(this.props.viewModel);
   }
 
-  focusIfNeeded() {
-    let {viewModel} = this.props;
-
+  focusIfNeeded(viewModel) {
     if (this.getTitleSelected(viewModel)) {
       setTimeout(() => {
         this.titleInput.focus();
@@ -29,13 +27,13 @@ class Node extends Component {
   }
 
   getTitleSelected(viewModel) {
-    return viewModel.titleSelected;
+    return viewModel.focus === 'title';
   }
 
   render() {
     const {viewModel, controller} = this.props;
 
-    const titleSelected = false;
+    const titleSelected = this.getTitleSelected(viewModel);
 
     return (
       <div className='Node'>

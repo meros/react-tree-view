@@ -4,6 +4,7 @@ import './NodesContainer.css'
 
 import React, { Component } from 'react';
 
+import JSONTree from 'react-json-tree'
 import KeyHandler from 'react-key-handler';
 import LoadingNode from './components/LoadingNode.js';
 import Node from './components/Node.js';
@@ -43,8 +44,6 @@ export default class NodeContainer extends Component {
 
   controller = {
     helpers: {
-      flattenVisibleNodes: () => {
-      },
       findParentIdTo: (id) => {
       },
       findVisibleChildren: (nodeId) => {
@@ -82,6 +81,7 @@ export default class NodeContainer extends Component {
     },
 
     blur: (id) => {
+      return;
       let {viewOptions} = this.state;
 
       if (viewOptions.focus.id !== id) {
@@ -95,70 +95,101 @@ export default class NodeContainer extends Component {
     focus: (id, type) => {
       let {viewOptions} = this.state;
 
+      if (id === viewOptions.focus.id && viewOptions.focus.type === type) {
+        return;
+      }
+
       viewOptions.focus.id = id;
       viewOptions.focus.type = type;
+
       this.setState({ viewOptions });
     },
-
     nextFocus: () => {
+      let {viewOptions} = this.state;
+      const flattened = this.getVisibleNodeIdsFlattened();
+      let index = (flattened.indexOf(viewOptions.focus.id) + 1) % flattened.length;
+      this.controller.focus(flattened[index], 'title');
     },
-
     prevFocus: () => {
+      let {viewOptions} = this.state;
+      const flattened = this.getVisibleNodeIdsFlattened();
+      let index = (flattened.indexOf(viewOptions.focus.id) - 1) % flattened.length;
+      if (index < 0) {
+        index = flattened.length - 1;
+      }
+      this.controller.focus(flattened[index], 'title');
     },
-
     complete: (id) => {
     },
-
     createSiblingTo: (siblingId) => {
     },
     indent: (id) => {
     },
     outdent: (id) => {
-
     }
   };
 
-  recursiveFireModelToViewModel(id, node) {
+  getViewModel() {
     let {firemodel, viewOptions} = this.state;
 
-    // Create viewModel
-    let viewModel = node;
-    viewModel.id = id;
-
-    // Make sure children only include visible children, but is always an array
-    const childrenIds =
-      (viewModel.children || [])
-        .filter(childId => firemodel[childId])
-        .filter(childId => !(firemodel[childId].complete && viewOptions.hideCompleted));
-
-    viewModel.expandCapability = 'none';
-    if (childrenIds.length > 0) {
-      viewModel.expandCapability = 'expand';
+    if (!firemodel) {
+      return undefined;
     }
 
-    // If node is not expanded, hide children
-    const expandedChildren = childrenIds;//viewOptions.expanded.has(id)?childrenIds:[];
-    if (expandedChildren.length > 0) {
-      viewModel.expandCapability = 'collapse';
+    let recursive = (id, node) => {
+      // Create viewModel
+      let viewModel = {};
+      viewModel.title = node.title;
+      viewModel.id = id;
+      viewModel.focus = 'none';
+      if (viewOptions.focus.id === id) {
+        viewModel.focus = viewOptions.focus.type;
+      }
+
+      // Make sure children only include visible children, but is always an array
+      const childrenIds =
+        (node.children || [])
+          .filter(childId => firemodel[childId])
+          .filter(childId => !(firemodel[childId].complete && viewOptions.hideCompleted));
+
+      viewModel.expandCapability = 'none';
+      if (childrenIds.length > 0) {
+        viewModel.expandCapability = 'expand';
+      }
+
+      // If node is not expanded, hide children
+      const expandedChildren = childrenIds;//viewOptions.expanded.has(id)?childrenIds:[];
+      if (expandedChildren.length > 0) {
+        viewModel.expandCapability = 'collapse';
+      }
+
+      viewModel.children = expandedChildren
+        .map(childId => recursive(childId, firemodel[childId]));
+
+      return viewModel;
     }
 
-    viewModel.children = expandedChildren
-      .map(childId => this.recursiveFireModelToViewModel(childId, firemodel[childId]));
+    return recursive('root', firemodel['root']);
+  }
 
-    return viewModel;
+  getVisibleNodeIdsFlattened() {
+    let {firemodel} = this.state;
+
+    const viewModel = this.getViewModel();
+
+    let flatten = (viewModel) => {
+      return [].concat.apply([viewModel.id], viewModel.children.map(child => flatten(child)));
+    }
+
+    return flatten(viewModel);
   }
 
   render() {
     const {firemodel, viewOptions} = this.state;
     const controller = this.controller;
-
-    let viewModel = undefined;
-    if (firemodel) {
-      viewModel = this.recursiveFireModelToViewModel('root', firemodel['root']) || {title: 'Welcome to TreeViewer!'};
-    }
+    const viewModel = this.getViewModel();
 
     return (
-
       <div className='NodesContainer'>
         <KeyHandler keyEventName={'keydown'} keyValue='ArrowDown' onKeyHandle={() => this.controller.nextFocus()} />
         <KeyHandler keyEventName={'keydown'} keyValue='ArrowUp' onKeyHandle={() => this.controller.prevFocus()} />
