@@ -62,6 +62,27 @@ export default class NodeContainer extends Component {
 
   controller = {
     helpers: {
+      flattenVisibleNodes: () => {
+          let {viewModel, model, firemodel} = this.state;
+
+          if (!model) {
+            return [];
+          }
+
+          let nodeIdsToFlatten = ['root'];
+          let flattenedVisibleNodeIds = [];
+
+          while (nodeIdsToFlatten.length) {
+            const nodeId = nodeIdsToFlatten.shift();
+            flattenedVisibleNodeIds.push(nodeId);
+
+            this.controller.helpers.findVisibleChildren(nodeId)
+              .reverse()
+              .forEach(childId => nodeIdsToFlatten.unshift(childId));
+          }
+
+          return flattenedVisibleNodeIds;
+      },
       findParentIdTo: (id) => {
         let firemodel = this.state.firemodel || {};
 
@@ -70,7 +91,16 @@ export default class NodeContainer extends Component {
           return children.indexOf(id) != -1;
         });
       },
-      findSiblingIdsTo: (id) => {
+      findVisibleChildren: (nodeId) => {
+        let {viewModel, model, firemodel} = this.state;
+        if (!viewModel.expanded.has(nodeId)) {
+          return [];
+        }
+
+        return (firemodel[nodeId].children || [])
+          .filter(childId => !firemodel[childId].complete);
+      },
+      findVisibleSiblingsTo: (id) => {
         let firemodel = this.state.firemodel || {};
 
         let parentId = this.controller.helpers.findParentIdTo(id);
@@ -78,23 +108,7 @@ export default class NodeContainer extends Component {
           return undefined;
         }
 
-        return firemodel[parentId].children || [];
-      },
-      find: (model, id) => {
-
-        if (model.id === id) {
-          return model;
-        }
-
-        for (var i in model.children) {
-          let child = model.children[i];
-          let result = this.controller.helpers.find(child, id);
-          if (result !== undefined) {
-            return result;
-          }
-        }
-
-        return undefined;
+        return this.controller.helpers.findVisibleChildren(parentId);
       }
     },
 
@@ -146,56 +160,32 @@ export default class NodeContainer extends Component {
     },
 
     nextFocus: () => {
-      let {model, viewModel} = this.state;
+      let {model, firemodel, viewModel} = this.state;
 
-      let found = false;
+      // No model, no focus!
+      if (!model) {
+        return;
+      }
 
-      let recursiveNextFocus = (model) => {
-        if (found || viewModel.focus.id === undefined) {
-          found = false;
-          viewModel.focus.id = model.id;
-          viewModel.focus.type = 'title';
-          return;
-        }
-
-        if (viewModel.focus.id === model.id) {
-          found = true;
-        }
-
-        if (viewModel.expanded.has(model.id)) {
-          model.children.forEach(recursiveNextFocus);
-        }
-      };
-
-      recursiveNextFocus(model);
-      this.setState({ viewModel });
+      const nodeIds = this.controller.helpers.flattenVisibleNodes();
+      let index = (nodeIds.indexOf(viewModel.focus.id) + 1) % nodeIds.length;
+      this.controller.focus(nodeIds[index], 'title');
     },
 
     prevFocus: () => {
-      let {model, viewModel} = this.state;
+      let {model, firemodel, viewModel} = this.state;
 
-      let lastbeforefound = model.id;
-      let found = false;
+      // No model, no focus!
+      if (!model) {
+        return;
+      }
 
-      let recursivePrevFocus = (model) => {
-        if (found || model.id === viewModel.focus.id) {
-          found = true;
-          return;
-        }
-
-        lastbeforefound = model.id;
-
-        if (viewModel.expanded.has(model.id)) {
-          model.children.forEach(recursivePrevFocus);
-        }
-      };
-
-      recursivePrevFocus(model);
-
-      viewModel.focus.id = lastbeforefound;
-      viewModel.focus.type = 'title';
-
-      this.setState({ viewModel });
+      const nodeIds = this.controller.helpers.flattenVisibleNodes();
+      let index = nodeIds.indexOf(viewModel.focus.id) - 1;
+      if (index < 0) {
+        index = nodeIds.length - 1;
+      }
+      this.controller.focus(nodeIds[index], 'title');
     },
 
     complete: (id) => {
@@ -205,9 +195,11 @@ export default class NodeContainer extends Component {
 
       const {firemodel} = this.state;
       this.getNodesRef().child(id).update({complete: !firemodel[id].complete});
+      this.controller.nextFocus();
     },
 
     createSiblingTo: (siblingId) => {
+      // TODO: should 'split' node into two...
       const {model, viewModel, firemodel} = this.state;
       const controller = this.controller;
 
@@ -234,6 +226,9 @@ export default class NodeContainer extends Component {
       controller.focus(newNodeId, 'title');
     },
     indent: (id) => {
+      // TODO: broken due to visible/hidden logic
+      alert('broken');
+
       const {firemodel, model, viewModel} = this.state;
       const controller = this.controller;
 
@@ -261,7 +256,7 @@ export default class NodeContainer extends Component {
 
       // Add to new parent (sibling to id)
       const newParentId = childrenIds[idIndex-1];
-      let newChildrenIds = firemodel[newParentId].children || [];
+      let newChildrenIds = (firemodel[newParentId].children || []);
       newChildrenIds.push(id);
       nodesRef.child(newParentId).update({children: newChildrenIds});
 
@@ -269,6 +264,9 @@ export default class NodeContainer extends Component {
       controller.expand(newParentId);
     },
     outdent: (id) => {
+      // TODO: broken due to visible/hidden logic
+      alert('broken');
+
       const {firemodel, model, viewModel} = this.state;
       const controller = this.controller;
 

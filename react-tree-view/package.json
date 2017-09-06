@@ -11,8 +11,7 @@
     "react-icons": "^2.2.5",
     "react-key-handler": "^1.0.0",
     "react-scripts": "1.0.12",
-    "react-spinkit": "^3.0.0",
-    "uuid": "^3.1.0"
+    "react-spinkit": "^3.0.0"
   },
   "scripts": {
     "start": "react-scripts start",

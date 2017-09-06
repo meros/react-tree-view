@@ -34,13 +34,15 @@ class Node extends Component {
   }
 
   render() {
-    let {model, viewModel, controller} = this.props;
+    const {model, viewModel, controller} = this.props;
 
-    let titleSelected = this.getTitleSelected(model, viewModel);
+    const titleSelected = this.getTitleSelected(model, viewModel);
 
-    let hasChildren = model.children.length > 0;
-    let expanded = viewModel.expanded.has(model.id);
-    let showChildren = expanded && model.children.length > 0;
+    const visibleChildren = model.children.filter(child => !child.complete);
+    const hasChildren = visibleChildren.length > 0;
+    const expanded = viewModel.expanded.has(model.id);
+    const showChildren = expanded && hasChildren;
+    const isComplete = model.complete;
 
     return (
       <div className='Node'>
@@ -113,7 +115,8 @@ class Node extends Component {
           showChildren &&
           <div className='Node__childcontainer'>
             {
-              model.children.map((child) => <Node model={child} viewModel={viewModel} key={child.id} controller={controller}/>)
+              visibleChildren
+                .map((child) => <Node model={child} viewModel={viewModel} key={child.id} controller={controller}/>)
             }
           </div>
         }
