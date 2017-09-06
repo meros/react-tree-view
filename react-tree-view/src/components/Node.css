@@ -22,6 +22,10 @@
   color: black;
 }
 
+.Node__title--complete {
+  text-decoration: line-through;
+}
+
 .Node__doticon {
   color: gray;
   margin-right: 5px;

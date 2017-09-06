@@ -4,7 +4,6 @@ import React, { Component } from 'react';
 
 import NodeContainer from './NodeContainer';
 import Spinner from 'react-spinkit';
-import equal from 'deep-equal';
 import firebase from 'firebase'
 
 class App extends Component {
@@ -14,7 +13,6 @@ class App extends Component {
   };
 
   componentDidMount() {
-    var provider = new firebase.auth.GoogleAuthProvider();
     firebase.auth().getRedirectResult().then((result) => {
       let user = result.user;
       if (!user) {

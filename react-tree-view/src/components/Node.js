@@ -56,7 +56,10 @@ class Node extends Component {
           </div>
           <input
             ref={(el) => this.titleInput = el}
-            className={cx('Node__title', {'Node__title--focus': titleSelected})}
+            className={cx(
+              'Node__title',
+              {'Node__title--focus': titleSelected},
+              {'Node__title--complete': viewModel.complete})}
             onBlur={() => controller.blur(viewModel.id)}
             onFocus={() => controller.focus(viewModel.id, 'title')}
             onChange={(event) => controller.changeTitle(viewModel.id, event.target.value)}
