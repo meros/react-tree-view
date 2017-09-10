@@ -66,7 +66,9 @@ class Node extends Component {
             onKeyDown={(e) => {
               // Arrow up
               if (e.keyCode === 38) {
-                if (e.metaKey) {
+                if (e.shiftKey && e.metaKey) {
+                  controller.dragUp(viewModel.id);
+                } else if(e.metaKey) {
                   controller.collapse(viewModel.id);
                 } else {
                   controller.prevFocus();
@@ -76,7 +78,9 @@ class Node extends Component {
 
               // Arrow down
               if (e.keyCode === 40) {
-                if (e.metaKey) {
+                if (e.shiftKey && e.metaKey) {
+                  controller.dragDown(viewModel.id);
+                } else if (e.metaKey) {
                   controller.expand(viewModel.id);
                 } else {
                   controller.nextFocus();

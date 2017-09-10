@@ -82,6 +82,76 @@ export default class NodeContainer extends Component {
       this.setState({ viewOptions });
     },
 
+    dragUp: (id) => {
+      let {viewOptions, firemodel} = this.state;
+
+      // Make sure we have a parent
+      const parentId = this.getParentIdTo(id);
+      if (!parentId) {
+        return;
+      }
+
+
+      const flattened = this.getVisibleNodeIdsFlattened(id);
+      const newSiblingId = flattened[flattened.indexOf(id) - 1];
+      if (!newSiblingId) {
+        return;
+      }
+
+      // Make sure new sibling has a parent!
+      const newSiblingParentId = this.getParentIdTo(newSiblingId);
+      if (!newSiblingParentId) {
+        return;
+      }
+
+      // Remove from old parent!
+      const siblingIds = firemodel[parentId].children || [];
+      const siblingIndex = siblingIds.indexOf(id);
+      siblingIds.splice(siblingIndex, 1);
+      this.getNodesRef().child(parentId).update({children: siblingIds});
+
+      // Add to new parent!
+      const newSiblingIds = firemodel[newSiblingParentId].children || [];
+      const newSiblingIndex = newSiblingIds.indexOf(newSiblingId);
+      newSiblingIds.splice(newSiblingIndex, 0, id);
+      this.getNodesRef().child(newSiblingParentId).update({children: newSiblingIds});
+    },
+
+    dragDown: (id) => {
+      let {viewOptions, firemodel} = this.state;
+
+      // Make sure we have a parent
+      const parentId = this.getParentIdTo(id);
+      if (!parentId) {
+        return;
+      }
+
+
+      const flattened = this.getVisibleNodeIdsFlattened(id);
+      const newSiblingId = flattened[flattened.indexOf(id) + 1];
+      if (!newSiblingId) {
+        return;
+      }
+
+      // Make sure new sibling has a parent!
+      const newSiblingParentId = this.getParentIdTo(newSiblingId);
+      if (!newSiblingParentId) {
+        return;
+      }
+
+      // Remove from old parent!
+      const siblingIds = firemodel[parentId].children || [];
+      const siblingIndex = siblingIds.indexOf(id);
+      siblingIds.splice(siblingIndex, 1);
+      this.getNodesRef().child(parentId).update({children: siblingIds});
+
+      // Add to new parent!
+      const newSiblingIds = firemodel[newSiblingParentId].children || [];
+      const newSiblingIndex = newSiblingIds.indexOf(newSiblingId);
+      newSiblingIds.splice(newSiblingIndex + 1, 0, id);
+      this.getNodesRef().child(newSiblingParentId).update({children: newSiblingIds});
+    },
+
     blur: (id) => {
       let {viewOptions} = this.state;
 
@@ -106,13 +176,11 @@ export default class NodeContainer extends Component {
       this.setState({ viewOptions });
     },
     nextFocus: (skipDirectChildren = false) => {
-      let {viewOptions, firemodel} = this.state;
+      let {viewOptions} = this.state;
 
       // In some cases, we don't want to focus first child, but rather next sibling
       // When completing a subtree for instance...
       let flattened = this.getVisibleNodeIdsFlattened(skipDirectChildren?viewOptions.focus.id:undefined);
-
-      const currentFocusNode = firemodel[viewOptions.focus.id];
 
       let index = (flattened.indexOf(viewOptions.focus.id) + 1) % flattened.length;
       this.controller.focus(flattened[index], 'title');
