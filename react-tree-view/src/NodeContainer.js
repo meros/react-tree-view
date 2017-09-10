@@ -28,7 +28,7 @@ export default class NodeContainer extends Component {
 
   getNodesRef() {
     let {user} = this.props;
-    return fire.database().ref('users').child(user.uid);
+    return fire.database().ref('users').child(user.uid).child('nodes');
   }
 
   componentDidMount() {
