@@ -5,10 +5,11 @@
   "dependencies": {
     "classnames": "^2.2.5",
     "firebase": "^4.3.0",
+    "immutability-helper": "^2.3.1",
     "react": "^15.6.1",
     "react-dom": "^15.6.1",
     "react-icons": "^2.2.5",
-    "react-json-tree": "^0.10.9",
+    "react-json-view": "^1.12.4",
     "react-key-handler": "^1.0.0",
     "react-scripts": "1.0.12",
     "react-spinkit": "^3.0.0"

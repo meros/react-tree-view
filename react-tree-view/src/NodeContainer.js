@@ -4,10 +4,12 @@ import './NodesContainer.css'
 
 import React, { Component } from 'react';
 
+import JsonView from 'react-json-view';
 import KeyHandler from 'react-key-handler';
 import LoadingNode from './components/LoadingNode.js';
 import Node from './components/Node.js';
 import fire from './fire';
+import update from 'immutability-helper';
 
 export default class NodeContainer extends Component {
   state = {
@@ -23,6 +25,7 @@ export default class NodeContainer extends Component {
 
       expanded: new Set([]),
       hideCompleted: true,
+      rootNode: 'root',
     }
   }
 
@@ -83,7 +86,7 @@ export default class NodeContainer extends Component {
     },
 
     dragUp: (id) => {
-      let {viewOptions, firemodel} = this.state;
+      let {firemodel, viewOptions} = this.state;
 
       // Make sure we have a parent
       const parentId = this.getParentIdTo(id);
@@ -91,10 +94,14 @@ export default class NodeContainer extends Component {
         return;
       }
 
-
       const flattened = this.getVisibleNodeIdsFlattened(id);
       const newSiblingId = flattened[flattened.indexOf(id) - 1];
       if (!newSiblingId) {
+        return;
+      }
+
+      // Avoid dragging out of zommed view
+      if (newSiblingId === viewOptions.rootNode) {
         return;
       }
 
@@ -118,7 +125,7 @@ export default class NodeContainer extends Component {
     },
 
     dragDown: (id) => {
-      let {viewOptions, firemodel} = this.state;
+      let {firemodel} = this.state;
 
       // Make sure we have a parent
       const parentId = this.getParentIdTo(id);
@@ -206,13 +213,17 @@ export default class NodeContainer extends Component {
     createSiblingTo: (siblingId) => {
       // TODO: should split current node instead of creating blank
       // TODO: should create in children iff siblindId has expanded children
-      const {firemodel} = this.state;
+      const {firemodel, viewOptions} = this.state;
       if (!firemodel) {
         return;
       }
 
+      if (siblingId === viewOptions.rootNode) {
+        siblingId = undefined;
+      }
+
       // Find siblings and our place among them
-      const parentId = this.getParentIdTo(siblingId) || 'root';
+      const parentId = this.getParentIdTo(siblingId) || viewOptions.rootNode;
       let siblingIds = firemodel[parentId].children || [];
       const siblingIndex = siblingIds.indexOf(siblingId);
 
@@ -222,22 +233,25 @@ export default class NodeContainer extends Component {
       // Set focus!
       this.controller.focus(newNodeRef.key, 'title');
 
+      // Expand parent
+      this.controller.expand(parentId);
+
       // Insert at correct place
       siblingIds.splice(siblingIndex + 1, 0, newNodeRef.key);
       this.getNodesRef().child(parentId).update({children: siblingIds});
     },
     indent: (id) => {
-      const {firemodel} = this.state;
+      const {firemodel, viewOptions} = this.state;
       if (!firemodel) {
         return;
       }
 
-      if (id === root) {
+      if (id === viewOptions.rootNode) {
         return;
       }
 
       // Check if there is a valid sibling to make new parent
-      const parentId = this.getParentIdTo(id) || 'root';
+      const parentId = this.getParentIdTo(id) || viewOptions.rootNode;
       let siblingIds = firemodel[parentId].children || [];
 
       // Check if there is a valid VISIBLE sibling to make new parent
@@ -299,6 +313,22 @@ export default class NodeContainer extends Component {
       // Add to new parent!
       parentSiblingIds.splice(parentSiblingIndex + 1, 0, id);
       this.getNodesRef().child(grandParentId).update({children: parentSiblingIds});
+    },
+    zoomIn: (id) => {
+      const {viewOptions} = this.state;
+      this.setState({viewOptions: update(viewOptions, {rootNode: {$set: id}})});
+    },
+    zoomOut: (id) => {
+      const {viewOptions} = this.state;
+
+      this.setState({
+          viewOptions: update(
+            viewOptions,
+            {
+              rootNode: {
+                $set: this.getParentIdTo(viewOptions.rootNode) || 'root'
+              }
+            })});
     }
   };
 
@@ -343,7 +373,7 @@ export default class NodeContainer extends Component {
       return viewModel;
     }
 
-    return recursive('root', firemodel['root']);
+    return recursive(viewOptions.rootNode, firemodel[viewOptions.rootNode]);
   }
 
   getVisibleNodeIdsFlattened(skipChildrenOfId = undefined) {
@@ -370,9 +400,14 @@ export default class NodeContainer extends Component {
   render() {
     const controller = this.controller;
     const viewModel = this.getViewModel();
+    const {viewOptions} = this.state;
 
     return (
       <div className='NodesContainer'>
+        {
+          viewOptions.rootNode !== 'root' &&
+          "TODO: Zoomed mode!"
+        }
         <KeyHandler keyEventName={'keydown'} keyValue='ArrowDown' onKeyHandle={() => this.controller.nextFocus()} />
         <KeyHandler keyEventName={'keydown'} keyValue='ArrowUp' onKeyHandle={() => this.controller.prevFocus()} />
         {

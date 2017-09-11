@@ -30,6 +30,71 @@ class Node extends Component {
     return viewModel.focus === 'title';
   }
 
+  onKeyDown(e) {
+    const {viewModel, controller} = this.props;
+
+    // Arrow left
+    if (e.keyCode === 37) {
+      if(e.metaKey) {
+        controller.zoomOut(viewModel.id);
+        e.preventDefault();
+      }
+    }
+
+    // Arrow left
+    if (e.keyCode === 39) {
+      if(e.metaKey) {
+        controller.zoomIn(viewModel.id);
+        e.preventDefault();
+      }
+    }
+
+    // Arrow up
+    if (e.keyCode === 38) {
+      if (e.shiftKey && e.metaKey) {
+        controller.dragUp(viewModel.id);
+      } else if(e.metaKey) {
+        controller.collapse(viewModel.id);
+      } else {
+        controller.prevFocus();
+      }
+      e.preventDefault();
+    }
+
+    // Arrow down
+    if (e.keyCode === 40) {
+      if (e.shiftKey && e.metaKey) {
+        controller.dragDown(viewModel.id);
+      } else if (e.metaKey) {
+        controller.expand(viewModel.id);
+      } else {
+        controller.nextFocus();
+      }
+      e.preventDefault();
+    }
+
+    // Enter
+    if (e.keyCode === 13) {
+      if (e.metaKey) {
+        controller.complete(viewModel.id);
+      } else {
+        controller.createSiblingTo(viewModel.id);
+      }
+      e.preventDefault();
+    }
+
+    // Tab
+    if (e.keyCode === 9) {
+      if (e.shiftKey) {
+        controller.outdent(viewModel.id);
+        e.preventDefault();
+      } else {
+        controller.indent(viewModel.id);
+        e.preventDefault();
+      }
+    }
+  }
+
   render() {
     const {viewModel, controller} = this.props;
 
@@ -63,52 +128,7 @@ class Node extends Component {
             onBlur={() => controller.blur(viewModel.id)}
             onFocus={() => controller.focus(viewModel.id, 'title')}
             onChange={(event) => controller.changeTitle(viewModel.id, event.target.value)}
-            onKeyDown={(e) => {
-              // Arrow up
-              if (e.keyCode === 38) {
-                if (e.shiftKey && e.metaKey) {
-                  controller.dragUp(viewModel.id);
-                } else if(e.metaKey) {
-                  controller.collapse(viewModel.id);
-                } else {
-                  controller.prevFocus();
-                }
-                e.preventDefault();
-              }
-
-              // Arrow down
-              if (e.keyCode === 40) {
-                if (e.shiftKey && e.metaKey) {
-                  controller.dragDown(viewModel.id);
-                } else if (e.metaKey) {
-                  controller.expand(viewModel.id);
-                } else {
-                  controller.nextFocus();
-                }
-                e.preventDefault();
-              }
-
-              // Enter
-              if (e.keyCode === 13) {
-                if (e.metaKey) {
-                  controller.complete(viewModel.id);
-                } else {
-                  controller.createSiblingTo(viewModel.id);
-                }
-                e.preventDefault();
-              }
-
-              // Tab
-              if (e.keyCode === 9) {
-                if (e.shiftKey) {
-                  controller.outdent(viewModel.id);
-                  e.preventDefault();
-                } else {
-                  controller.indent(viewModel.id);
-                  e.preventDefault();
-                }
-              }
-            }}
+            onKeyDown={(e) => this.onKeyDown(e)}
             value={viewModel.title} />
         </div>
         {
