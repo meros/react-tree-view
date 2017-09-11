@@ -6,3 +6,7 @@
   align-items: stretch;
   justify-content: flex-start;
 }
+
+.NodesContainer__pathspacer {
+  height: 8px;
+}

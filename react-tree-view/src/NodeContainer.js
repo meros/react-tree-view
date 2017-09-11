@@ -269,7 +269,7 @@ export default class NodeContainer extends Component {
       let parentId = this.getParentIdTo(siblingId) || viewOptions.rootNode;
 
       if (siblingId === viewOptions.rootNode) {
-        parentId = 'viewOptions.rootNode';
+        parentId = viewOptions.rootNode;
       }
 
       let siblingIds = firemodel[parentId].children || [];
@@ -396,7 +396,7 @@ export default class NodeContainer extends Component {
         pathNode.id = currNode;
         pathNode.title = firemodel[currNode].title;
 
-        result.unshift();
+        result.unshift(pathNode);
       }
       currNode = this.getParentIdTo(currNode);
     }
@@ -444,8 +444,12 @@ export default class NodeContainer extends Component {
 
       return viewModel;
     }
+    const rootNode = firemodel[viewOptions.rootNode];
+    if (!rootNode) {
+      return undefined;
+    }
 
-    return recursive(viewOptions.rootNode, firemodel[viewOptions.rootNode]);
+    return recursive(viewOptions.rootNode, rootNode);
   }
 
   getVisibleNodeIdsFlattened(skipChildrenOfId: string | void = undefined) {
@@ -483,6 +487,10 @@ export default class NodeContainer extends Component {
         {
           viewOptions.rootNode !== 'root' &&
           <Path pathModel={pathModel}/>
+        }
+        {
+          viewOptions.rootNode !== 'root' &&
+          <div style={{height: '5px'}}/>
         }
         <KeyHandler keyEventName={'keydown'} keyValue='ArrowDown' onKeyHandle={() => this.controller.nextFocus()} />
         <KeyHandler keyEventName={'keydown'} keyValue='ArrowUp' onKeyHandle={() => this.controller.prevFocus()} />

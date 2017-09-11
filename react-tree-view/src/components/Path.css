@@ -1,0 +1,13 @@
+.Path {
+  display: flex;
+  color: lightgray;
+  padding-left: 1px;
+}
+
+.Path__part {
+  display: flex;
+}
+
+.Path__title {
+  font-size: 13pt;
+}
