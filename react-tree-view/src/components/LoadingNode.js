@@ -1,3 +1,5 @@
+// @flow
+
 import './LoadingNode.css';
 
 import React, { Component } from 'react';

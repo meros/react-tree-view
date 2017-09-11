@@ -1,3 +1,5 @@
+// @flow
+
 import './App.css';
 
 import React, { Component } from 'react';
@@ -35,7 +37,7 @@ class App extends Component {
         <div className='App__nodescontainer'>
           {
             user !== undefined &&
-            <NodeContainer user={user} controller={this.controller}/>
+            <NodeContainer user={user} />
           }
           {
             user === undefined &&

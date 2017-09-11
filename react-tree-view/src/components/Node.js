@@ -1,3 +1,5 @@
+// @flow
+
 import './Node.css'
 
 import React, { Component } from 'react';
@@ -8,9 +10,23 @@ const ArrowRight = require('react-icons/lib/io/arrow-right-b');
 const ArrowDown = require('react-icons/lib/io/arrow-down-b');
 const Dot = require('react-icons/lib/io/minus-round');
 
+type ViewModel = {
+  id: string,
+  title: string,
+  children: Array<ViewModel>,
+  complete: boolean,
+};
+
 class Node extends Component {
 
-  componentWillUpdate(nextProps) {
+  props : {
+    viewModel: ViewModel,
+    controller: any,
+  };
+
+  titleInput: any = undefined;
+
+  componentWillUpdate(nextProps: {viewModel: any}) {
     this.focusIfNeeded(nextProps.viewModel);
   }
 
@@ -18,19 +34,23 @@ class Node extends Component {
     this.focusIfNeeded(this.props.viewModel);
   }
 
-  focusIfNeeded(viewModel) {
+  focusIfNeeded(viewModel: any) {
     if (this.getTitleSelected(viewModel)) {
       setTimeout(() => {
+        if (!this.titleInput) {
+          return;
+        }
+
         this.titleInput.focus();
       }, 0);
     }
   }
 
-  getTitleSelected(viewModel) {
+  getTitleSelected(viewModel: any) {
     return viewModel.focus === 'title';
   }
 
-  onKeyDown(e) {
+  onKeyDown(e: any) {
     const {viewModel, controller} = this.props;
 
     // Arrow left
