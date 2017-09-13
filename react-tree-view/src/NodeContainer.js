@@ -1,6 +1,6 @@
 // @flow
 
-import './NodesContainer.css'
+import './NodesContainer.css';
 
 import React, { Component } from 'react';
 
@@ -12,14 +12,16 @@ import Path from './components/Path';
 import fire from './fire';
 import update from 'immutability-helper';
 
-type FireModel = { [nodeid: string]: {
-  title: string,
-  complete: boolean,
-  children: Array<string>,
-}};
+type FireModel = {
+  [nodeid: string]: {
+    title: string,
+    complete: boolean,
+    children: Array<string>,
+  },
+};
 
 export default class NodeContainer extends Component {
-  state : {
+  state: {
     firemodel: FireModel,
     viewOptions: {
       focus: {
@@ -29,7 +31,7 @@ export default class NodeContainer extends Component {
       expanded: any,
       hideCompleted: boolean,
       rootNode: string,
-    }
+    },
   } = {
     // Original data from firebase
     firemodel: {},
@@ -44,51 +46,59 @@ export default class NodeContainer extends Component {
       expanded: new Set([]),
       hideCompleted: true,
       rootNode: 'root',
-    }
-  }
+    },
+  };
 
   getNodesRef() {
-    let {user} = this.props;
-    return fire.database().ref('users').child(user.uid).child('nodes');
+    let { user } = this.props;
+    return fire
+      .database()
+      .ref('users')
+      .child(user.uid)
+      .child('nodes');
   }
 
   componentDidMount() {
     /* Create reference to messages in Firebase Database */
-    this.getNodesRef().on('value', (snapshot) => {
+    this.getNodesRef().on('value', snapshot => {
       let firemodel = snapshot.val();
-      this.setState({firemodel});
+      this.setState({ firemodel });
 
       // Inject root
       if (!firemodel) {
-        this.getNodesRef().child('root').set({title: 'Welcome to TreeView!'});
+        this.getNodesRef()
+          .child('root')
+          .set({ title: 'Welcome to TreeView!' });
       }
     });
   }
 
   getParentIdTo(id: string) {
-    let {firemodel} = this.state;
+    let { firemodel } = this.state;
     if (!firemodel) {
       return undefined;
     }
 
     return Object.keys(firemodel).find(nodeId => {
-        if (!firemodel || !firemodel[nodeId]) {
-          return false;
-        }
+      if (!firemodel || !firemodel[nodeId]) {
+        return false;
+      }
 
-        return (firemodel[nodeId].children || []).indexOf(id) !== -1
+      return (firemodel[nodeId].children || []).indexOf(id) !== -1;
     });
   }
 
   controller = {
     changeTitle: (id: string, newTitle: string) => {
-      this.getNodesRef().child(id).update({title: newTitle});
+      this.getNodesRef()
+        .child(id)
+        .update({ title: newTitle });
     },
 
     toggleExpand: (id: string) => {
-      let {viewOptions} = this.state;
+      let { viewOptions } = this.state;
 
-      if(viewOptions.expanded.has(id)) {
+      if (viewOptions.expanded.has(id)) {
         viewOptions.expanded.delete(id);
       } else {
         viewOptions.expanded.add(id);
@@ -98,19 +108,19 @@ export default class NodeContainer extends Component {
     },
 
     collapse: (id: string) => {
-      let {viewOptions} = this.state;
+      let { viewOptions } = this.state;
       viewOptions.expanded.delete(id);
       this.setState({ viewOptions });
     },
 
     expand: (id: string) => {
-      let {viewOptions} = this.state;
+      let { viewOptions } = this.state;
       viewOptions.expanded.add(id);
       this.setState({ viewOptions });
     },
 
     dragUp: (id: string) => {
-      let {firemodel, viewOptions} = this.state;
+      let { firemodel, viewOptions } = this.state;
 
       if (!firemodel) {
         return;
@@ -143,17 +153,21 @@ export default class NodeContainer extends Component {
       const siblingIds = firemodel[parentId].children || [];
       const siblingIndex = siblingIds.indexOf(id);
       siblingIds.splice(siblingIndex, 1);
-      this.getNodesRef().child(parentId).update({children: siblingIds});
+      this.getNodesRef()
+        .child(parentId)
+        .update({ children: siblingIds });
 
       // Add to new parent!
       const newSiblingIds = firemodel[newSiblingParentId].children || [];
       const newSiblingIndex = newSiblingIds.indexOf(newSiblingId);
       newSiblingIds.splice(newSiblingIndex, 0, id);
-      this.getNodesRef().child(newSiblingParentId).update({children: newSiblingIds});
+      this.getNodesRef()
+        .child(newSiblingParentId)
+        .update({ children: newSiblingIds });
     },
 
     dragDown: (id: string) => {
-      let {firemodel} = this.state;
+      let { firemodel } = this.state;
 
       if (!firemodel) {
         return;
@@ -164,7 +178,6 @@ export default class NodeContainer extends Component {
       if (!parentId || !firemodel[parentId]) {
         return;
       }
-
 
       const flattened = this.getVisibleNodeIdsFlattened(id);
       const newSiblingId = flattened[flattened.indexOf(id) + 1];
@@ -182,17 +195,21 @@ export default class NodeContainer extends Component {
       const siblingIds = firemodel[parentId].children || [];
       const siblingIndex = siblingIds.indexOf(id);
       siblingIds.splice(siblingIndex, 1);
-      this.getNodesRef().child(parentId).update({children: siblingIds});
+      this.getNodesRef()
+        .child(parentId)
+        .update({ children: siblingIds });
 
       // Add to new parent!
       const newSiblingIds = firemodel[newSiblingParentId].children || [];
       const newSiblingIndex = newSiblingIds.indexOf(newSiblingId);
       newSiblingIds.splice(newSiblingIndex + 1, 0, id);
-      this.getNodesRef().child(newSiblingParentId).update({children: newSiblingIds});
+      this.getNodesRef()
+        .child(newSiblingParentId)
+        .update({ children: newSiblingIds });
     },
 
     blur: (id: string) => {
-      let {viewOptions} = this.state;
+      let { viewOptions } = this.state;
 
       if (viewOptions.focus.id !== id) {
         return;
@@ -203,7 +220,7 @@ export default class NodeContainer extends Component {
     },
 
     focus: (id: string, type: 'title') => {
-      let {viewOptions} = this.state;
+      let { viewOptions } = this.state;
 
       if (id === viewOptions.focus.id && viewOptions.focus.type === type) {
         return;
@@ -214,14 +231,17 @@ export default class NodeContainer extends Component {
 
       this.setState({ viewOptions });
     },
-    nextFocus: (skipDirectChildren:boolean = false) => {
-      let {viewOptions} = this.state;
+    nextFocus: (skipDirectChildren: boolean = false) => {
+      let { viewOptions } = this.state;
 
       // In some cases, we don't want to focus first child, but rather next sibling
       // When completing a subtree for instance...
-      let flattened = this.getVisibleNodeIdsFlattened(skipDirectChildren?viewOptions.focus.id:undefined);
+      let flattened = this.getVisibleNodeIdsFlattened(
+        skipDirectChildren ? viewOptions.focus.id : undefined,
+      );
 
-      let index = (flattened.indexOf(viewOptions.focus.id) + 1) % flattened.length;
+      let index =
+        (flattened.indexOf(viewOptions.focus.id) + 1) % flattened.length;
 
       if (!flattened[index]) {
         return;
@@ -230,9 +250,10 @@ export default class NodeContainer extends Component {
       this.controller.focus(flattened[index], 'title');
     },
     prevFocus: () => {
-      let {viewOptions} = this.state;
+      let { viewOptions } = this.state;
       const flattened = this.getVisibleNodeIdsFlattened();
-      let index = (flattened.indexOf(viewOptions.focus.id) - 1) % flattened.length;
+      let index =
+        (flattened.indexOf(viewOptions.focus.id) - 1) % flattened.length;
       if (index < 0) {
         index = flattened.length - 1;
       }
@@ -244,14 +265,16 @@ export default class NodeContainer extends Component {
       this.controller.focus(flattened[index], 'title');
     },
     complete: (id: string) => {
-      const {firemodel, viewOptions} = this.state;
+      const { firemodel, viewOptions } = this.state;
 
       if (!firemodel) {
         return;
       }
 
       const wasComplete = firemodel[id].complete;
-      this.getNodesRef().child(id).update({complete: !wasComplete});
+      this.getNodesRef()
+        .child(id)
+        .update({ complete: !wasComplete });
 
       if (viewOptions.hideCompleted && !wasComplete) {
         this.controller.nextFocus(true);
@@ -260,7 +283,7 @@ export default class NodeContainer extends Component {
     createSiblingTo: (siblingId: string) => {
       // TODO: should split current node instead of creating blank
       // TODO: should create in children iff siblindId has expanded children
-      const {firemodel, viewOptions} = this.state;
+      const { firemodel, viewOptions } = this.state;
       if (!firemodel) {
         return;
       }
@@ -276,7 +299,7 @@ export default class NodeContainer extends Component {
       const siblingIndex = siblingIds.indexOf(siblingId);
 
       // Create new node
-      let newNodeRef = this.getNodesRef().push({title: ''});
+      let newNodeRef = this.getNodesRef().push({ title: '' });
 
       // Set focus!
       this.controller.focus(newNodeRef.key, 'title');
@@ -286,10 +309,12 @@ export default class NodeContainer extends Component {
 
       // Insert at correct place
       siblingIds.splice(siblingIndex + 1, 0, newNodeRef.key);
-      this.getNodesRef().child(parentId).update({children: siblingIds});
+      this.getNodesRef()
+        .child(parentId)
+        .update({ children: siblingIds });
     },
     indent: (id: string) => {
-      const {firemodel, viewOptions} = this.state;
+      const { firemodel, viewOptions } = this.state;
       if (!firemodel) {
         return;
       }
@@ -304,8 +329,10 @@ export default class NodeContainer extends Component {
 
       // Check if there is a valid VISIBLE sibling to make new parent
       const flattenVisibleNodes = this.getVisibleNodeIdsFlattened();
-      let visibleSiblingIds = siblingIds
-        .filter(visibleSiblingId => flattenVisibleNodes.indexOf(visibleSiblingId) !== -1);
+      let visibleSiblingIds = siblingIds.filter(
+        visibleSiblingId =>
+          flattenVisibleNodes.indexOf(visibleSiblingId) !== -1,
+      );
 
       const siblingIndex = siblingIds.indexOf(id);
       const visibleSiblingIndex = visibleSiblingIds.indexOf(id);
@@ -317,19 +344,23 @@ export default class NodeContainer extends Component {
 
       // Remove from old parent!
       siblingIds.splice(siblingIndex, 1);
-      this.getNodesRef().child(parentId).update({children: siblingIds});
+      this.getNodesRef()
+        .child(parentId)
+        .update({ children: siblingIds });
 
       // Add to new parent!
-      const newParentId = visibleSiblingIds[visibleSiblingIndex-1];
+      const newParentId = visibleSiblingIds[visibleSiblingIndex - 1];
       let newSiblingIds = firemodel[newParentId].children || [];
       newSiblingIds.push(id);
-      this.getNodesRef().child(newParentId).update({children: newSiblingIds});
+      this.getNodesRef()
+        .child(newParentId)
+        .update({ children: newSiblingIds });
 
       // Expand new parent!
       this.controller.expand(newParentId);
     },
     outdent: (id: string) => {
-      const {firemodel} = this.state;
+      const { firemodel } = this.state;
       if (!firemodel) {
         return;
       }
@@ -352,7 +383,9 @@ export default class NodeContainer extends Component {
 
       // Remove from old parent!
       siblingIds.splice(siblingIndex, 1);
-      this.getNodesRef().child(parentId).update({children: siblingIds});
+      this.getNodesRef()
+        .child(parentId)
+        .update({ children: siblingIds });
 
       // Find our place among the new siblings
       let parentSiblingIds = firemodel[grandParentId].children || [];
@@ -360,28 +393,31 @@ export default class NodeContainer extends Component {
 
       // Add to new parent!
       parentSiblingIds.splice(parentSiblingIndex + 1, 0, id);
-      this.getNodesRef().child(grandParentId).update({children: parentSiblingIds});
+      this.getNodesRef()
+        .child(grandParentId)
+        .update({ children: parentSiblingIds });
     },
     zoomIn: (id: string) => {
-      const {viewOptions} = this.state;
-      this.setState({viewOptions: update(viewOptions, {rootNode: {$set: id}})});
+      const { viewOptions } = this.state;
+      this.setState({
+        viewOptions: update(viewOptions, { rootNode: { $set: id } }),
+      });
     },
     zoomOut: (id: string) => {
-      const {viewOptions} = this.state;
+      const { viewOptions } = this.state;
 
       this.setState({
-          viewOptions: update(
-            viewOptions,
-            {
-              rootNode: {
-                $set: this.getParentIdTo(viewOptions.rootNode) || 'root'
-              }
-            })});
-    }
+        viewOptions: update(viewOptions, {
+          rootNode: {
+            $set: this.getParentIdTo(viewOptions.rootNode) || 'root',
+          },
+        }),
+      });
+    },
   };
 
   getPathModel() {
-    let {firemodel, viewOptions} = this.state;
+    let { firemodel, viewOptions } = this.state;
 
     if (!firemodel) {
       return undefined;
@@ -405,7 +441,7 @@ export default class NodeContainer extends Component {
   }
 
   getViewModel() {
-    let {firemodel, viewOptions} = this.state;
+    let { firemodel, viewOptions } = this.state;
 
     if (!firemodel) {
       return undefined;
@@ -423,10 +459,12 @@ export default class NodeContainer extends Component {
       }
 
       // Make sure children only include visible children, but is always an array
-      const childrenIds =
-        (node.children || [])
-          .filter(childId => firemodel[childId])
-          .filter(childId => !(firemodel[childId].complete && viewOptions.hideCompleted));
+      const childrenIds = (node.children || [])
+        .filter(childId => firemodel[childId])
+        .filter(
+          childId =>
+            !(firemodel[childId].complete && viewOptions.hideCompleted),
+        );
 
       viewModel.expandCapability = 'none';
       if (childrenIds.length > 0) {
@@ -434,16 +472,17 @@ export default class NodeContainer extends Component {
       }
 
       // If node is not expanded, hide children
-      const expandedChildren = viewOptions.expanded.has(id)?childrenIds:[];
+      const expandedChildren = viewOptions.expanded.has(id) ? childrenIds : [];
       if (expandedChildren.length > 0) {
         viewModel.expandCapability = 'collapse';
       }
 
-      viewModel.children = expandedChildren
-        .map(childId => recursive(childId, firemodel[childId]));
+      viewModel.children = expandedChildren.map(childId =>
+        recursive(childId, firemodel[childId]),
+      );
 
       return viewModel;
-    }
+    };
     const rootNode = firemodel[viewOptions.rootNode];
     if (!rootNode) {
       return undefined;
@@ -453,7 +492,7 @@ export default class NodeContainer extends Component {
   }
 
   getVisibleNodeIdsFlattened(skipChildrenOfId: string | void = undefined) {
-    let {firemodel} = this.state;
+    let { firemodel } = this.state;
     if (!firemodel) {
       return [];
     }
@@ -464,15 +503,16 @@ export default class NodeContainer extends Component {
       return [];
     }
 
-    let flatten = (viewModel) => {
+    let flatten = viewModel => {
       if (skipChildrenOfId && viewModel.id === skipChildrenOfId) {
         return [viewModel.id];
       }
 
       return [].concat.apply(
         [viewModel.id],
-        viewModel.children.map(child => flatten(child)));
-    }
+        viewModel.children.map(child => flatten(child)),
+      );
+    };
 
     return flatten(viewModel);
   }
@@ -480,28 +520,26 @@ export default class NodeContainer extends Component {
   render() {
     const controller = this.controller;
     const viewModel = this.getViewModel();
-    const {viewOptions} = this.state;
+    const { viewOptions } = this.state;
     const pathModel = this.getPathModel();
     return (
-      <div className='NodesContainer'>
-        {
-          viewOptions.rootNode !== 'root' &&
-          <Path pathModel={pathModel}/>
-        }
-        {
-          viewOptions.rootNode !== 'root' &&
-          <div style={{height: '5px'}}/>
-        }
-        <KeyHandler keyEventName={'keydown'} keyValue='ArrowDown' onKeyHandle={() => this.controller.nextFocus()} />
-        <KeyHandler keyEventName={'keydown'} keyValue='ArrowUp' onKeyHandle={() => this.controller.prevFocus()} />
-        {
-          viewModel &&
-          <Node viewModel={viewModel} controller={controller}/>
-        }
-        {
-          !viewModel &&
-          <LoadingNode />
-        }
+      <div className="NodesContainer">
+        {viewOptions.rootNode !== 'root' && <Path pathModel={pathModel} />}
+        {viewOptions.rootNode !== 'root' && (
+          <div className="NodesContainer__pathspacer" />
+        )}
+        <KeyHandler
+          keyEventName={'keydown'}
+          keyValue="ArrowDown"
+          onKeyHandle={() => this.controller.nextFocus()}
+        />
+        <KeyHandler
+          keyEventName={'keydown'}
+          keyValue="ArrowUp"
+          onKeyHandle={() => this.controller.prevFocus()}
+        />
+        {viewModel && <Node viewModel={viewModel} controller={controller} />}
+        {!viewModel && <LoadingNode />}
       </div>
     );
   }

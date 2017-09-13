@@ -35,11 +35,9 @@
   color: black;
 }
 
-
 .Node__titledot--focus {
   background-color: black;
 }
-
 
 .Node__childcontainer {
   padding-left: 30px;

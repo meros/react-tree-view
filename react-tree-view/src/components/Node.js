@@ -1,6 +1,6 @@
 // @flow
 
-import './Node.css'
+import './Node.css';
 
 import React, { Component } from 'react';
 
@@ -18,15 +18,14 @@ type ViewModel = {
 };
 
 class Node extends Component {
-
-  props : {
+  props: {
     viewModel: ViewModel,
     controller: any,
   };
 
   titleInput: any = undefined;
 
-  componentWillUpdate(nextProps: {viewModel: any}) {
+  componentWillUpdate(nextProps: { viewModel: any }) {
     this.focusIfNeeded(nextProps.viewModel);
   }
 
@@ -51,11 +50,11 @@ class Node extends Component {
   }
 
   onKeyDown(e: any) {
-    const {viewModel, controller} = this.props;
+    const { viewModel, controller } = this.props;
 
     // Arrow left
     if (e.keyCode === 37) {
-      if(e.metaKey) {
+      if (e.metaKey) {
         controller.zoomOut(viewModel.id);
         e.preventDefault();
       }
@@ -63,7 +62,7 @@ class Node extends Component {
 
     // Arrow left
     if (e.keyCode === 39) {
-      if(e.metaKey) {
+      if (e.metaKey) {
         controller.zoomIn(viewModel.id);
         e.preventDefault();
       }
@@ -73,7 +72,7 @@ class Node extends Component {
     if (e.keyCode === 38) {
       if (e.shiftKey && e.metaKey) {
         controller.dragUp(viewModel.id);
-      } else if(e.metaKey) {
+      } else if (e.metaKey) {
         controller.collapse(viewModel.id);
       } else {
         controller.prevFocus();
@@ -116,54 +115,52 @@ class Node extends Component {
   }
 
   render() {
-    const {viewModel, controller} = this.props;
+    const { viewModel, controller } = this.props;
 
     const titleSelected = this.getTitleSelected(viewModel);
 
     return (
-      <div className='Node'>
-        <div className='Node__titlerow'>
+      <div className="Node">
+        <div className="Node__titlerow">
           <div
-            className={cx("Node__doticon", {"Node__doticon--focus": titleSelected})}
+            className={cx('Node__doticon', {
+              'Node__doticon--focus': titleSelected,
+            })}
             onClick={() => controller.toggleExpand(viewModel.id)}>
-            {
-              viewModel.expandCapability === 'expand' &&
+            {viewModel.expandCapability === 'expand' && (
               <ArrowRight size={20} />
-            }
-            {
-              viewModel.expandCapability === 'collapse' &&
+            )}
+            {viewModel.expandCapability === 'collapse' && (
               <ArrowDown size={20} />
-            }
-            {
-              viewModel.expandCapability === 'none' &&
-              <Dot size={20} />
-            }
+            )}
+            {viewModel.expandCapability === 'none' && <Dot size={20} />}
           </div>
           <input
-            ref={(el) => this.titleInput = el}
+            ref={el => (this.titleInput = el)}
             className={cx(
               'Node__title',
-              {'Node__title--focus': titleSelected},
-              {'Node__title--complete': viewModel.complete})}
+              { 'Node__title--focus': titleSelected },
+              { 'Node__title--complete': viewModel.complete },
+            )}
             onBlur={() => controller.blur(viewModel.id)}
             onFocus={() => controller.focus(viewModel.id, 'title')}
-            onChange={(event) => controller.changeTitle(viewModel.id, event.target.value)}
-            onKeyDown={(e) => this.onKeyDown(e)}
-            value={viewModel.title} />
+            onChange={event =>
+              controller.changeTitle(viewModel.id, event.target.value)}
+            onKeyDown={e => this.onKeyDown(e)}
+            value={viewModel.title}
+          />
         </div>
-        {
-          viewModel.children.length > 0 &&
-          <div className='Node__childcontainer'>
-            {
-              viewModel.children
-                .map(childViewModel =>
-                  <Node
-                    viewModel={childViewModel}
-                    controller={controller}
-                    key={childViewModel.id} />)
-            }
+        {viewModel.children.length > 0 && (
+          <div className="Node__childcontainer">
+            {viewModel.children.map(childViewModel => (
+              <Node
+                viewModel={childViewModel}
+                controller={controller}
+                key={childViewModel.id}
+              />
+            ))}
           </div>
-        }
+        )}
       </div>
     );
   }
