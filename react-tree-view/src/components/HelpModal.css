@@ -3,7 +3,7 @@
   bottom: 50px;
   right: 50px;
 
-  border-radius: 5px;
+  border-radius: 10px;
   background-color: white;
   -webkit-box-shadow: 0px 0px 10px -2px rgba(0, 0, 0, 0.75);
   -moz-box-shadow: 0px 0px 10px -2px rgba(0, 0, 0, 0.75);
@@ -14,6 +14,26 @@
   align-items: stretch;
 
   padding: 10px;
+}
 
-  font-size: 16pt;
+.HelpModal__header {
+  font-size: 19pt;
+  margin-bottom: 10px;
+}
+
+.HelpModal__gridcontainer {
+  border-spacing: 0px;
+}
+
+.HelpModal__gridcontainer td {
+  padding: 0px;
+}
+
+.HelpModal__cellcontent {
+  font-size: 12pt;
+  padding: 5px;
+}
+
+.HelpModal__cellcontent--odd {
+  background-color: #eee;
 }
