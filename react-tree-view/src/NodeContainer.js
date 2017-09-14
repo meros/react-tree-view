@@ -9,15 +9,18 @@ import KeyHandler from 'react-key-handler';
 import LoadingNode from './components/LoadingNode.js';
 import Node from './components/Node.js';
 import Path from './components/Path';
+import type { ViewModel } from './components/Node.js';
 import fire from './fire';
 import update from 'immutability-helper';
 
+type FireNode = {
+  title: string,
+  completeStatus: 'complete' | 'recentlyCompleted' | 'uncomplete',
+  children: Array<string>,
+};
+
 type FireModel = {
-  [nodeid: string]: {
-    title: string,
-    complete: boolean,
-    children: Array<string>,
-  },
+  [nodeid: string]: FireNode,
 };
 
 export default class NodeContainer extends Component {
@@ -65,10 +68,15 @@ export default class NodeContainer extends Component {
       this.setState({ firemodel });
 
       // Inject root
+      const newNode: FireNode = {
+        title: 'Welcome to TreeView!',
+        completeStatus: 'uncomplete',
+        children: [],
+      };
       if (!firemodel) {
         this.getNodesRef()
           .child('root')
-          .set({ title: 'Welcome to TreeView!' });
+          .set(newNode);
       }
     });
   }
@@ -231,14 +239,12 @@ export default class NodeContainer extends Component {
 
       this.setState({ viewOptions });
     },
-    nextFocus: (skipDirectChildren: boolean = false) => {
+    nextFocus: (skipDirectChildrenOf: string | void = undefined) => {
       let { viewOptions } = this.state;
 
       // In some cases, we don't want to focus first child, but rather next sibling
       // When completing a subtree for instance...
-      let flattened = this.getVisibleNodeIdsFlattened(
-        skipDirectChildren ? viewOptions.focus.id : undefined,
-      );
+      let flattened = this.getVisibleNodeIdsFlattened(skipDirectChildrenOf);
 
       let index =
         (flattened.indexOf(viewOptions.focus.id) + 1) % flattened.length;
@@ -271,13 +277,25 @@ export default class NodeContainer extends Component {
         return;
       }
 
-      const wasComplete = firemodel[id].complete;
-      this.getNodesRef()
-        .child(id)
-        .update({ complete: !wasComplete });
+      const wasComplete = firemodel[id].completeStatus === 'uncomplete';
+      const nodeRef = this.getNodesRef().child(id);
 
-      if (viewOptions.hideCompleted && !wasComplete) {
-        this.controller.nextFocus(true);
+      nodeRef.update({
+        completeStatus: wasComplete ? 'recentlyCompleted' : 'uncomplete',
+      });
+
+      if (wasComplete) {
+        setTimeout(() => {
+          nodeRef.once('value').then(snapshot => {
+            if (snapshot.val().completeStatus !== 'recentlyCompleted') {
+              return;
+            }
+
+            nodeRef.update({
+              completeStatus: 'complete',
+            });
+          });
+        }, 1500);
       }
     },
     createSiblingTo: (siblingId: string) => {
@@ -299,7 +317,12 @@ export default class NodeContainer extends Component {
       const siblingIndex = siblingIds.indexOf(siblingId);
 
       // Create new node
-      let newNodeRef = this.getNodesRef().push({ title: '' });
+      const newNode: FireNode = {
+        title: '',
+        completeStatus: 'uncomplete',
+        children: [],
+      };
+      let newNodeRef = this.getNodesRef().push(newNode);
 
       // Set focus!
       this.controller.focus(newNodeRef.key, 'title');
@@ -440,7 +463,7 @@ export default class NodeContainer extends Component {
     return result;
   }
 
-  getViewModel() {
+  getViewModel(): ViewModel | void {
     let { firemodel, viewOptions } = this.state;
 
     if (!firemodel) {
@@ -449,11 +472,15 @@ export default class NodeContainer extends Component {
 
     let recursive = (id, node) => {
       // Create viewModel
-      let viewModel = {};
-      viewModel.title = node.title;
-      viewModel.id = id;
-      viewModel.complete = node.complete;
-      viewModel.focus = 'none';
+      let viewModel: ViewModel = {
+        id: id,
+        title: node.title,
+        strikethrough: node.completeStatus !== 'uncomplete',
+        focus: 'none',
+        children: [],
+        expandCapability: 'none',
+      };
+
       if (viewOptions.focus.id === id) {
         viewModel.focus = viewOptions.focus.type;
       }
@@ -463,7 +490,10 @@ export default class NodeContainer extends Component {
         .filter(childId => firemodel[childId])
         .filter(
           childId =>
-            !(firemodel[childId].complete && viewOptions.hideCompleted),
+            !(
+              firemodel[childId].completeStatus === 'complete' &&
+              viewOptions.hideCompleted
+            ),
         );
 
       viewModel.expandCapability = 'none';
@@ -538,7 +568,9 @@ export default class NodeContainer extends Component {
           keyValue="ArrowUp"
           onKeyHandle={() => this.controller.prevFocus()}
         />
-        {viewModel && <Node viewModel={viewModel} controller={controller} />}
+        {viewModel !== undefined && (
+          <Node viewModel={viewModel} controller={controller} />
+        )}
         {!viewModel && <LoadingNode />}
       </div>
     );

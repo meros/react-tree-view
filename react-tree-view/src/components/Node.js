@@ -10,11 +10,13 @@ const ArrowRight = require('react-icons/lib/io/arrow-right-b');
 const ArrowDown = require('react-icons/lib/io/arrow-down-b');
 const Dot = require('react-icons/lib/io/minus-round');
 
-type ViewModel = {
+export type ViewModel = {
   id: string,
   title: string,
   children: Array<ViewModel>,
-  complete: boolean,
+  strikethrough: boolean,
+  focus: 'none' | 'title',
+  expandCapability: 'none' | 'expand' | 'collapse',
 };
 
 class Node extends Component {
@@ -25,7 +27,7 @@ class Node extends Component {
 
   titleInput: any = undefined;
 
-  componentWillUpdate(nextProps: { viewModel: any }) {
+  componentWillUpdate(nextProps: { viewModel: ViewModel }) {
     this.focusIfNeeded(nextProps.viewModel);
   }
 
@@ -33,7 +35,7 @@ class Node extends Component {
     this.focusIfNeeded(this.props.viewModel);
   }
 
-  focusIfNeeded(viewModel: any) {
+  focusIfNeeded(viewModel: ViewModel) {
     if (this.getTitleSelected(viewModel)) {
       setTimeout(() => {
         if (!this.titleInput) {
@@ -45,7 +47,7 @@ class Node extends Component {
     }
   }
 
-  getTitleSelected(viewModel: any) {
+  getTitleSelected(viewModel: ViewModel) {
     return viewModel.focus === 'title';
   }
 
@@ -140,7 +142,7 @@ class Node extends Component {
             className={cx(
               'Node__title',
               { 'Node__title--focus': titleSelected },
-              { 'Node__title--complete': viewModel.complete },
+              { 'Node__title--strikethrough': viewModel.strikethrough },
             )}
             onBlur={() => controller.blur(viewModel.id)}
             onFocus={() => controller.focus(viewModel.id, 'title')}
