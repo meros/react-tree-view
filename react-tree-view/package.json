@@ -5,8 +5,8 @@
   "scripts": {
     "start": "react-scripts-ts start",
     "build": "react-scripts-ts build",
-    "test": "react-scripts-ts test --env=jsdom",
-    "eject": "react-scripts-ts eject"
+    "prepare": "yarn build",
+    "deploy": "yarn build && firebase deploy"
   },
   "dependencies": {
     "classnames": "^2.2.6",
