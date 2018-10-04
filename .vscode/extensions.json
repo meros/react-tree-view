@@ -1,0 +1,8 @@
+{
+  "recommendations": [
+    "eg2.tslint",
+    "esbenp.prettier-vscode",
+    "vsmobile.vscode-react-native",
+    "ms-vscode.node-debug2"
+  ]
+}

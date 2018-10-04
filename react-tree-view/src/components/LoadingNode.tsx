@@ -1,13 +1,13 @@
 // @flow
 
-import './LoadingNode.css';
+import "./LoadingNode.css";
 
-import React, { Component } from 'react';
+import * as React from "react";
 
-const Dot = require('react-icons/lib/io/minus-round');
+import { IoIosAirplane as Dot } from "react-icons/io";
 
-export default class LoadingNode extends Component {
-  render() {
+export default class LoadingNode extends React.Component {
+  public render() {
     return (
       <div className="LoadingNode">
         <div className="LoadingNode__titlerow">

@@ -1,0 +1,7 @@
+{
+  "editor.formatOnSave": true,
+  "prettier.tslintIntegration": true,
+  "javascript.format.enable": false,
+  "typescript.format.enable": false,
+  "react-native-tools.projectRoot": "${workspaceRoot}/packages/app"
+}

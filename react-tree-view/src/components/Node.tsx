@@ -1,41 +1,43 @@
 // @flow
 
-import './Node.css';
+import "./Node.css";
 
-import React, { Component } from 'react';
+import * as React from "react";
 
-import cx from 'classnames/bind';
+import cx from "classnames";
 
-const ArrowRight = require('react-icons/lib/io/arrow-right-b');
-const ArrowDown = require('react-icons/lib/io/arrow-down-b');
-const Dot = require('react-icons/lib/io/minus-round');
+import {
+  IoIosAirplane as ArrowDown,
+  IoIosAirplane as ArrowRight,
+  IoIosAirplane as Dot
+} from "react-icons/io";
 
-export type ViewModel = {
-  id: string,
-  title: string,
-  children: Array<ViewModel>,
-  strikethrough: boolean,
-  focus: 'none' | 'title',
-  expandCapability: 'none' | 'expand' | 'collapse',
-};
+export interface IViewModel {
+  id: string;
+  title: string;
+  children: IViewModel[];
+  strikethrough: boolean;
+  focus: "none" | "title";
+  expandCapability: "none" | "expand" | "collapse";
+}
 
-class Node extends Component {
-  props: {
-    viewModel: ViewModel,
-    controller: any,
+class Node extends React.Component {
+  public props: {
+    viewModel: IViewModel;
+    controller: any;
   };
 
-  titleInput: any = undefined;
+  public titleInput: any = undefined;
 
-  componentWillUpdate(nextProps: { viewModel: ViewModel }) {
+  public componentWillUpdate(nextProps: { viewModel: IViewModel }) {
     this.focusIfNeeded(nextProps.viewModel);
   }
 
-  componentDidMount() {
+  public componentDidMount() {
     this.focusIfNeeded(this.props.viewModel);
   }
 
-  focusIfNeeded(viewModel: ViewModel) {
+  public focusIfNeeded(viewModel: IViewModel) {
     if (this.getTitleSelected(viewModel)) {
       setTimeout(() => {
         if (!this.titleInput) {
@@ -47,11 +49,11 @@ class Node extends Component {
     }
   }
 
-  getTitleSelected(viewModel: ViewModel) {
-    return viewModel.focus === 'title';
+  public getTitleSelected(viewModel: IViewModel) {
+    return viewModel.focus === "title";
   }
 
-  onKeyDown(e: any) {
+  public onKeyDown(e: any) {
     const { viewModel, controller } = this.props;
 
     // Arrow left
@@ -116,7 +118,7 @@ class Node extends Component {
     }
   }
 
-  render() {
+  public render() {
     const { viewModel, controller } = this.props;
 
     const titleSelected = this.getTitleSelected(viewModel);
@@ -125,29 +127,31 @@ class Node extends Component {
       <div className="Node">
         <div className="Node__titlerow">
           <div
-            className={cx('Node__doticon', {
-              'Node__doticon--focus': titleSelected,
+            className={cx("Node__doticon", {
+              "Node__doticon--focus": titleSelected
             })}
-            onClick={() => controller.toggleExpand(viewModel.id)}>
-            {viewModel.expandCapability === 'expand' && (
+            onClick={() => controller.toggleExpand(viewModel.id)}
+          >
+            {viewModel.expandCapability === "expand" && (
               <ArrowRight size={20} />
             )}
-            {viewModel.expandCapability === 'collapse' && (
+            {viewModel.expandCapability === "collapse" && (
               <ArrowDown size={20} />
             )}
-            {viewModel.expandCapability === 'none' && <Dot size={20} />}
+            {viewModel.expandCapability === "none" && <Dot size={20} />}
           </div>
           <input
             ref={el => (this.titleInput = el)}
             className={cx(
-              'Node__title',
-              { 'Node__title--focus': titleSelected },
-              { 'Node__title--strikethrough': viewModel.strikethrough },
+              "Node__title",
+              { "Node__title--focus": titleSelected },
+              { "Node__title--strikethrough": viewModel.strikethrough }
             )}
             onBlur={() => controller.blur(viewModel.id)}
-            onFocus={() => controller.focus(viewModel.id, 'title')}
+            onFocus={() => controller.focus(viewModel.id, "title")}
             onChange={event =>
-              controller.changeTitle(viewModel.id, event.target.value)}
+              controller.changeTitle(viewModel.id, event.target.value)
+            }
             onKeyDown={e => this.onKeyDown(e)}
             value={viewModel.title}
           />

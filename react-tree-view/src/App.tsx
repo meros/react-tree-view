@@ -1,30 +1,28 @@
-// @flow
+import "./App.css";
 
-import './App.css';
+import * as React from "react";
 
-import React, { Component } from 'react';
+import * as firebase from "firebase";
+import * as Spinner from "react-spinkit";
+import HelpModal from "./components/HelpModal";
+import NodeContainer from "./NodeContainer";
 
-import HelpModal from './components/HelpModal';
-import NodeContainer from './NodeContainer';
-import Spinner from 'react-spinkit';
-import firebase from 'firebase';
-
-class App extends Component {
-  state = {
-    user: undefined,
+class App extends React.Component {
+  public state = {
+    user: undefined
   };
 
-  componentDidMount() {
+  public componentDidMount() {
     firebase
       .auth()
       .getRedirectResult()
       .then(result => {
-        let user = result.user;
+        const user = result.user;
         if (!user) {
           // Start a sign in process for an unauthenticated user.
-          var provider = new firebase.auth.GoogleAuthProvider();
-          provider.addScope('profile');
-          provider.addScope('email');
+          const provider = new firebase.auth.GoogleAuthProvider();
+          provider.addScope("profile");
+          provider.addScope("email");
           firebase.auth().signInWithRedirect(provider);
           return;
         }
@@ -33,7 +31,7 @@ class App extends Component {
       });
   }
 
-  render() {
+  public render() {
     const { user } = this.state;
     return (
       <div className="App">
