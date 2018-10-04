@@ -7,9 +7,9 @@ import * as React from "react";
 import cx from "classnames";
 
 import {
-  IoIosAirplane as ArrowDown,
-  IoIosAirplane as ArrowRight,
-  IoIosAirplane as Dot
+  IoIosArrowDropdownCircle as ArrowDown,
+  IoIosArrowDroprightCircle as ArrowRight,
+  IoIosRemoveCircle as Dot
 } from "react-icons/io";
 
 export interface IViewModel {

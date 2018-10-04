@@ -4,7 +4,7 @@ import "./LoadingNode.css";
 
 import * as React from "react";
 
-import { IoIosAirplane as Dot } from "react-icons/io";
+import { IoIosRemoveCircle as Dot } from "react-icons/io";
 
 export default class LoadingNode extends React.Component {
   public render() {

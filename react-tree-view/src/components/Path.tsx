@@ -1,7 +1,7 @@
 import "./Path.css";
 
 import * as React from "react";
-import { IoIosAirplane as SeperatorIcon } from "react-icons/io";
+import { IoIosArrowDroprightCircle as SeperatorIcon } from "react-icons/io";
 
 interface IPathNode {
   id: string;
